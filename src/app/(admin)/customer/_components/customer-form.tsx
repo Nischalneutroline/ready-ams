@@ -104,7 +104,6 @@ const CustomerForm = () => {
       if (isEditMode && id) {
         result = await updateCustomer(id, customerData);
       } else {
-        console.log(customerData, "CustomerData in create api");
         result = await createCustomer(customerData);
       }
 
