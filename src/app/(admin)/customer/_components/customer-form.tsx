@@ -38,7 +38,7 @@ type FormData = {
 };
 
 const CustomerForm = () => {
-  const userId = "user_2xLhj302gLTOLa9H54voKIQK4zm";
+  const userId = "user_2xLvgxJdbjhCheR0HDc3p9tTjIp";
   const { user, client } = useUser();
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
   const [emailObj, setEmailObj] = useState<EmailAddressResource | undefined>();
@@ -46,7 +46,7 @@ const CustomerForm = () => {
   const params = useParams();
   const id = params.id as string | undefined;
   const isEditMode = !!id;
-  const [oldEmail, setOldEmail] = useState("");
+  const [oldEmailAddress, setOldEmailAddress] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [code, setCode] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -78,7 +78,7 @@ const CustomerForm = () => {
         try {
           setIsLoading(true);
           const customer = await getCustomerById(id);
-          setOldEmail(customer?.email || "");
+          setOldEmailAddress(customer?.email || "");
           if (customer) {
             const formData: FormData = {
               fullName: customer.name,
@@ -141,6 +141,7 @@ const CustomerForm = () => {
               fullName: formData.fullName,
               role: Role.USER,
               userId: user?.id || "",
+              email: formData.email,
             }),
           });
 
@@ -175,9 +176,9 @@ const CustomerForm = () => {
           }
         }
       } else {
-        result = await createCustomer(customerData);
-        console.log(customerData, "customerData");
-        if (result.success) {
+        // result = await createCustomer(customerData);
+        // console.log(customerData, "customerData");
+        if (true) {
           try {
             const response = await fetch("/api/user/create", {
               method: "POST",
@@ -187,8 +188,10 @@ const CustomerForm = () => {
               body: JSON.stringify({
                 fullName: formData.fullName,
                 email: formData.email,
+                phone: formData.phone,
                 password: formData.password,
                 role: Role.USER,
+                isActive: true,
               }),
             });
 
@@ -202,18 +205,6 @@ const CustomerForm = () => {
             throw error;
           }
         }
-      }
-
-      // Only navigate after all operations are complete
-      if (result.success) {
-        toast.success(
-          isEditMode
-            ? "Customer updated successfully"
-            : "Customer created successfully"
-        );
-        setTimeout(() => {
-          router.push("/customer");
-        }, 500);
       }
     } catch (error) {
       console.error(
@@ -245,12 +236,12 @@ const CustomerForm = () => {
         });
 
         // Delete the old email address
-        const user = await client.users.getUser(userId || "");
-        const oldEmail = user.emailAddresses.find(
-          (email: any) => email.emailAddress === oldEmail
+        const user = await client.users.getUser(userId);
+        const oldEmailAddress = user.emailAddresses.find(
+          (email: any) => email.emailAddress === oldEmailAddress
         );
-        if (oldEmail && oldEmail.id !== emailObj.id) {
-          await client.emailAddresses.deleteEmailAddress(oldEmail.id);
+        if (oldEmailAddress && oldEmailAddress.id !== emailObj.id) {
+          await client.emailAddresses.deleteEmailAddress(oldEmailAddress.id);
         }
 
         // Show success message
@@ -367,10 +358,7 @@ const CustomerForm = () => {
             </div>
           </form>
           {isVerificationModalOpen && (
-            <Dialog
-              open={isVerificationModalOpen}
-              onOpenChange={setIsVerificationModalOpen}
-            >
+            <Dialog open={isVerificationModalOpen}>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Email Verification</DialogTitle>

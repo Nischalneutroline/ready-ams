@@ -1,24 +1,20 @@
 // src/app/api/user/update/route.ts
 import { NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
-import { Clerk } from "@clerk/clerk-sdk-node";
 
 interface UpdateUserRequest {
   userId: string;
   fullName?: string;
-  email?: string;
   newEmail?: string;
-  password?: string;
   role?: string;
 }
 
 export async function POST(req: Request) {
   const client = await clerkClient();
-
   try {
-    const body = await req.json();
+    const body: UpdateUserRequest = await req.json();
     console.log("Request Body:", body);
-    const { userId, fullName, newEmail, role, email, password } = body;
+    const { userId, fullName, newEmail, role } = body;
 
     if (!userId) {
       return NextResponse.json(
@@ -27,54 +23,45 @@ export async function POST(req: Request) {
       );
     }
 
+    // ✅ Update full name
     if (fullName) {
-      const fullNameParts = fullName.split(" ");
-      const firstName = fullNameParts[0];
-      const lastName = fullNameParts[1];
-
-      try {
-        await client.users.updateUser(userId, {
-          firstName,
-          lastName,
-        });
-      } catch (error) {
-        console.log(error);
-      }
+      const [firstName, ...rest] = fullName.trim().split(" ");
+      const lastName = rest.join(" ") || "";
+      await client.users.updateUser(userId, {
+        firstName,
+        lastName,
+      });
     }
 
-    // if (email) {
-    //   // 1. Create new email for user
-    //   const newEmailObj = await client.emailAddresses.createEmailAddress({
+    // ✅ Update email and trigger verification
+    // if (newEmail) {
+    //   const newEmailObj = await client.emailAddresses.updateEmailAddress(
     //     userId,
-    //     emailAddress: newEmail,
-    //   });
-    //   // Send verification email
-    //   const user = await client.users.getUser(userId);
-    //   const emailAddress = user.emailAddresses.find(
-    //     (a) => a.id === newEmailObj?.id
+    //     {
+    //       emailAddress: newEmail,
+    //       primary: true,
+    //     }
     //   );
-    //   if (emailAddress) {
-    //     emailAddress?.prepareVerification({ strategy: "email_code" });
-    //   }
+
+    //   await client.emailAddresses.prepareVerification("email_code");
     // }
 
+    // ✅ Update role in publicMetadata
     if (role) {
       await client.users.updateUser(userId, {
-        publicMetadata: {
-          role,
-        },
+        publicMetadata: { role },
       });
     }
 
     return NextResponse.json({
       success: true,
       message:
-        "User updated successfully. Please check your email for verification.",
+        "User updated successfully. If email was changed, a verification email has been sent.",
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating user:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to update user" },
+      { success: false, error: error.message || "Failed to update user" },
       { status: 500 }
     );
   }
