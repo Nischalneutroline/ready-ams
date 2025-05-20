@@ -18,7 +18,7 @@ datasource db {
 model User {
   id         String   @id @default(cuid()) // Unique ID for the user
   email      String   @unique // User's email, must be unique
-  password   String // Hashed password
+  password   String? // Hashed password
   name       String // User's name
   phone      String? // Optional phone number
   createdAt  DateTime @default(now()) // Timestamp when user was created

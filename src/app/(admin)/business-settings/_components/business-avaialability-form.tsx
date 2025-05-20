@@ -218,7 +218,7 @@ export default function BusinessSettingsForm({
   const business = businessData || propBusiness
   console.log(
     "BusinessSettingsForm: Incoming business details:",
-    JSON.stringify(business, null, 2)
+    JSON.stringify(business.id, null, 2)
   )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { setBusinessData, updateSelectedBusiness } = useBusinessStore()
@@ -314,6 +314,7 @@ export default function BusinessSettingsForm({
     setIsSubmitting(true)
     try {
       const formattedData = transformFormDataForApi(business, data)
+      console.log(formattedData, "formatted Business Availability Data")
       let response
       if (isUpdateMode) {
         console.log(`Calling updateBusiness with id: ${formattedData.id}`)
