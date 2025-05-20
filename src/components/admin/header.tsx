@@ -1,14 +1,14 @@
-"use client";
-import { Bell, Menu, Sidebar } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState } from "react";
-import SidebarMobile from "./sidebar-mobile";
-import { useNavStore } from "@/state/store";
-import { SignedIn, SignedOut, UserButton, UserProfile } from "@clerk/nextjs";
+"use client"
+import { Bell, Menu, Sidebar } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useState } from "react"
+import SidebarMobile from "./sidebar-mobile"
+import { useNavStore } from "@/state/store"
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
 
 const Header = () => {
-  const { onOpen } = useNavStore();
+  const { onOpen } = useNavStore()
 
   return (
     <div className="flex items-center gap-4 w-full ">
@@ -28,7 +28,8 @@ const Header = () => {
           <SignedOut>
             <Bell className="text-white" />
             <Avatar className="size-8">
-              <UserProfile />
+              <AvatarImage src="https://github.com/shadcn.png" />
+              <AvatarFallback>CN</AvatarFallback>
             </Avatar>
           </SignedOut>
           <SignedIn>
@@ -37,7 +38,7 @@ const Header = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header

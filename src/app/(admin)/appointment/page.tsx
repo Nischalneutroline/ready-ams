@@ -3,14 +3,13 @@
 import { useEffect, useMemo, useCallback, useRef } from "react"
 import { useAppointmentStore } from "./_store/appointment-store"
 import { columns } from "./_components/column"
-
+import { DataTable } from "@/components/table/data-table"
 import PageTabs from "@/components/table/page-tabs"
 import TablePageHeader from "@/components/table/table-header"
 import DataTableSkeleton from "@/components/table/skeleton-table"
 import { Button } from "@/components/ui/button"
 import { RefreshCw } from "lucide-react"
 import { cn } from "@/utils/utils"
-import { DataTable } from "@/components/table/data-table"
 
 const pageOptions = [
   "Today",

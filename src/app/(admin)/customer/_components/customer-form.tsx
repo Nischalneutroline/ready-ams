@@ -1,43 +1,41 @@
-"use client";
+"use client"
 
-import { useEffect, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useForm, FormProvider } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Button } from "@/components/ui/button";
-import InputField from "@/components/custom-form-fields/input-field";
-import { User, Mail, Lock, Eye, EyeOff, ShieldAlert } from "lucide-react";
-import PhoneField from "@/components/custom-form-fields/phone-field";
-import ToggleSwitch from "@/components/custom-form-fields/toggle-switch";
-import { useParams, useRouter } from "next/navigation";
-import FormHeader from "@/components/admin/form-header";
-import { Role } from "@/app/(admin)/customer/_types/customer";
-import { useCustomerStore } from "@/app/(admin)/customer/_store/customer-store";
+import { useEffect, useState } from "react"
+import { useForm, FormProvider } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Button } from "@/components/ui/button"
+import InputField from "@/components/custom-form-fields/input-field"
+import { User, Mail, Lock, Eye, EyeOff, ShieldAlert } from "lucide-react"
+import PhoneField from "@/components/custom-form-fields/phone-field"
+import ToggleSwitch from "@/components/custom-form-fields/toggle-switch"
+import { useParams, useRouter } from "next/navigation"
+import FormHeader from "@/components/admin/form-header"
+import { Role } from "@/app/(admin)/customer/_types/customer"
+import { useCustomerStore } from "@/app/(admin)/customer/_store/customer-store"
 import {
   createSchema,
   updateSchema,
-} from "@/app/(admin)/customer/_schema/customer";
-import { PostCustomerData } from "../_api-call/customer-api-call";
-import { useReverification, useUser } from "@clerk/nextjs";
-import { EmailAddressResource } from "@clerk/types";
-import { toast } from "sonner";
-import clerkClient, { createClerkClient } from "@clerk/clerk-sdk-node";
+} from "@/app/(admin)/customer/_schema/customer"
+import { PostCustomerData } from "../_api-call/customer-api-call"
 
 // Form data type
 type FormData = {
-  fullName: string;
-  email: string;
-  phone: string;
-  password?: string;
-  isActive: boolean;
-};
+  fullName: string
+  email: string
+  phone: string
+  password?: string
+  isActive: boolean
+}
 
 const CustomerForm = () => {
+  const router = useRouter()
+  const params = useParams()
+  const id = params.id as string | undefined
+  const isEditMode = !!id
+  const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(isEditMode)
   const userId = "user_2xLvgxJdbjhCheR0HDc3p9tTjIp";
   const { user, client } = useUser();
   const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
@@ -56,8 +54,7 @@ const CustomerForm = () => {
     user?.createEmailAddress({ email })
   );
 
-  const { getCustomerById, createCustomer, updateCustomer } =
-    useCustomerStore();
+  const { getCustomerById, createCustomer, updateCustomer } = useCustomerStore()
 
   // Initialize form with appropriate schema
   const form = useForm<FormData>({
@@ -69,13 +66,15 @@ const CustomerForm = () => {
       password: "",
       isActive: true,
     },
-  });
+  })
 
   // Fetch customer data for edit mode
   useEffect(() => {
     if (isEditMode && id) {
       const fetchCustomer = async () => {
         try {
+          setIsLoading(true)
+          const customer = await getCustomerById(id)
           setIsLoading(true);
           const customer = await getCustomerById(id);
           setOldEmailAddress(customer?.email || "");
@@ -86,28 +85,28 @@ const CustomerForm = () => {
               phone: customer.phone || "",
               password: "",
               isActive: customer.isActive ?? true,
-            };
-            console.log("Setting form data:", formData);
-            form.reset(formData);
+            }
+            console.log("Setting form data:", formData)
+            form.reset(formData)
           } else {
-            router.push("/customer");
+            router.push("/customer")
           }
         } catch (error) {
-          console.error("Error fetching customer:", error);
-          router.push("/customer");
+          console.error("Error fetching customer:", error)
+          router.push("/customer")
         } finally {
-          setIsLoading(false);
+          setIsLoading(false)
         }
-      };
-      fetchCustomer();
+      }
+      fetchCustomer()
     } else {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, [id, isEditMode, getCustomerById, form, router]);
+  }, [id, isEditMode, getCustomerById, form, router])
 
   // Handle form submission
   const handleSubmit = async (formData: FormData) => {
-    setIsSubmitting(true);
+    setIsSubmitting(true)
     try {
       const customerData: PostCustomerData = {
         name: formData.fullName,
@@ -116,13 +115,13 @@ const CustomerForm = () => {
         role: Role.USER,
         password: formData.password || undefined,
         isActive: formData.isActive,
-      };
+      }
 
-      console.log("Submitting customer data:", customerData);
+      console.log("Submitting customer data:", customerData)
 
-      let result;
-
+      let result
       if (isEditMode && id) {
+        result = await updateCustomer(id, customerData)
         const updatedCustomer = await getCustomerById(id);
         if (!updatedCustomer) {
           throw new Error("Customer not found");
@@ -176,6 +175,13 @@ const CustomerForm = () => {
           }
         }
       } else {
+        result = await createCustomer(customerData)
+      }
+
+      if (result.success) {
+        router.push("/customer")
+      }
+      // Toast is handled by the store
         // result = await createCustomer(customerData);
         // console.log(customerData, "customerData");
         if (true) {
@@ -210,10 +216,12 @@ const CustomerForm = () => {
       console.error(
         `Error ${isEditMode ? "updating" : "creating"} customer:`,
         error
-      );
+      )
+      // Toast is handled by the store
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
+  }
   };
 
   // Handle the submission of the verification form
@@ -263,8 +271,8 @@ const CustomerForm = () => {
   };
 
   const handleBack = () => {
-    router.push("/customer");
-  };
+    router.push("/customer")
+  }
 
   return (
     <>
@@ -388,7 +396,7 @@ const CustomerForm = () => {
         </FormProvider>
       )}
     </>
-  );
-};
+  )
+}
 
-export default CustomerForm;
+export default CustomerForm
