@@ -630,7 +630,7 @@
 // export default BusinessDetailForm
 // BusinessDetailForm.tsx
 "use client"
-
+import { useAuth, useOrganization } from "@clerk/nextjs"
 import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -658,8 +658,33 @@ import FileUploadField from "@/components/custom-form-fields/image-upload"
 import { toast } from "sonner"
 import { useEffect } from "react"
 import { useBusinessStore } from "@/app/(admin)/business-settings/_store/business-store"
+import { useUser } from "@clerk/nextjs"
+import { getBusinessById } from "../_api-call/business-api-call"
+import { business } from "../../../../features/business-detail/action/action"
+import { User } from "@clerk/nextjs/server"
 
 export const transformBusinessData = (data: any) => {
+  const address = Array.isArray(data.address) ? data.address[0] || {} : {}
+  return {
+    id: data.id || "",
+    businessName: data.name || "",
+    industry: data.industry || "",
+    email: data.email || "",
+    phone: data.phone || "",
+    website: data.website || "",
+    city: address.city || "",
+    street: address.street || "",
+    state: address.state || "",
+    zipCode: address.zipCode || "",
+    country: address.country || "",
+    googleMap: address.googleMap || "",
+    registrationNumber: data.businessRegistrationNumber || "",
+    taxId: data.taxId || null,
+    logo: data.logo || null,
+    visibility: data.visibility || "",
+  }
+}
+export const transformBusinessDataAfterSubmit = (data: any) => {
   return {
     id: data.id || "",
     businessName: data.businessName || "",
@@ -726,39 +751,83 @@ interface BusinessDetailFormProps {
 const BusinessDetailForm = ({
   businessData: propBusinessData,
 }: BusinessDetailFormProps) => {
-  const { businessData, setBusinessData, setActiveTab } = useBusinessStore()
-  const isUpdateMode = !!businessData?.id
+  const {
+    businessData,
+    setBusinessData,
+    setSelectedBusiness,
+    setActiveTab,
+    selectedBusiness,
+  } = useBusinessStore()
+  const { user } = useUser()
 
-  const form = useForm({
-    defaultValues: {
-      id: "",
-      businessName: "",
-      industry: "",
-      email: "",
-      phone: "",
-      website: "",
-      city: "",
-      street: "",
-      state: "",
-      zipCode: "",
-      country: "",
-      googleMap: "",
-      registrationNumber: "",
-      taxId: null,
-      logo: null,
-      visibility: "",
-    },
-    resolver: zodResolver(schema),
-  })
+  const { isLoaded, organization }: any = useOrganization()
+
+  // const activeOrganization = fetchBusinessById(organization?.id as string)
+
+  const isUpdateMode = !!selectedBusiness?.id
 
   // Initialize form with businessData only on mount or when businessData.id changes
+  let id
   useEffect(() => {
-    if (businessData) {
-      form.reset(transformBusinessData(businessData), {
-        keepDefaultValues: false,
-      })
+    if (selectedBusiness?.id) {
+      const dataBeforeUpdate = transformBusinessData(selectedBusiness)
+      form.reset(dataBeforeUpdate)
     }
-  }, [businessData?.id, form])
+  }, [selectedBusiness])
+
+  useEffect(() => {
+    const fetchBusiness = async () => {
+      if (organization?.id) {
+        const orgToUpdate = await getBusinessById(organization?.id)
+        console.log(orgToUpdate, "Organization data to update")
+        setSelectedBusiness(orgToUpdate.data)
+      }
+    }
+    fetchBusiness()
+  }, [organization?.id])
+
+  const defaultValues = isUpdateMode
+    ? {
+        id: selectedBusiness.id,
+        businessName: selectedBusiness.name || "",
+        industry: selectedBusiness.industry || "",
+        email: selectedBusiness.email || "",
+        phone: selectedBusiness.phone || "",
+        website: selectedBusiness.website || "",
+        city: selectedBusiness.address[0].city || "",
+        street: selectedBusiness.address[0].street || "",
+        state: selectedBusiness.address[0].state || "",
+        zipCode: selectedBusiness.address[0].zipCode || "",
+        country: selectedBusiness.address[0].country || "",
+        googleMap: selectedBusiness.address[0].googleMap || "",
+        registrationNumber: selectedBusiness.businessRegistrationNumber || "",
+        taxId: "",
+        logo: "",
+        visibility: selectedBusiness.status || "",
+      }
+    : {
+        id: "",
+        businessName: "",
+        industry: "",
+        email: "",
+        phone: "",
+        website: "",
+        city: "",
+        street: "",
+        state: "",
+        zipCode: "",
+        country: "",
+        googleMap: "",
+        registrationNumber: "",
+        taxId: "",
+        logo: "",
+        visibility: "",
+      }
+
+  const form = useForm({
+    defaultValues,
+    resolver: zodResolver(schema),
+  })
 
   // Sync form changes to businessData in store
   useEffect(() => {
@@ -771,16 +840,53 @@ const BusinessDetailForm = ({
     return () => subscription.unsubscribe()
   }, [form, businessData, setBusinessData])
 
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
+    if (!user) {
+      toast.error("Please login to continue")
+      return
+    }
+
+    // Update business data with organization info
     const updatedData = {
       ...businessData,
-      ...transformBusinessData(data),
+      ...transformBusinessDataAfterSubmit(data),
     }
     setBusinessData(updatedData)
+    toast.success("Business details saved and organization created!")
+
     setActiveTab("Business hour & Availability")
-    toast.success("Business details saved! Proceed to set availability.")
   }
 
+  // // Helper function to fetch existing organization
+  // const fetchExistingOrganization = async (orgId: string) => {
+  //   try {
+  //     const orgs = await fetch(`/api/business-detail/${orgId}`)
+  //     const orgData = await orgs.json()
+  //     return orgData?.data?.[0]
+  //   } catch (error) {
+  //     console.error("Failed to fetch organizations:", error)
+  //     return null
+  //   }
+  // }
+
+  // // Helper function to update organization
+  // const updateOrganization = async (orgId: string, data: any) => {
+  //   try {
+  //     const response = await fetch(`/api/organizations/${orgId}`, {
+  //       method: "PATCH",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(data),
+  //     })
+  //     if (!response.ok) {
+  //       throw new Error("Failed to update organization")
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to update organization:", error)
+  //     throw error
+  //   }
+  // }
   const onSaveAndExit = () => {
     toast.info("Save and exit clicked. Data not persisted.")
   }

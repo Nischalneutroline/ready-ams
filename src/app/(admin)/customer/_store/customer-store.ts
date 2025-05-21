@@ -8,15 +8,17 @@ import {
   updateCustomer,
   deleteCustomer,
 } from "@/app/(admin)/customer/_api-call/customer-api-call"
-import { ApiReturnType, User } from "../_types/customer"
+import { ApiReturnType, User, loggedInUser } from "../_types/customer"
 
 interface CustomerState {
   activeTab: string
   customers: User[]
+  loggedInUser: loggedInUser | null
   loading: boolean
   isRefreshing: boolean
   hasFetched: boolean
   error: string | null
+  setLoggedInUser: (user: loggedInUser) => void
   onActiveTab: (tab: string) => void
   fetchCustomers: (isManualRefresh?: boolean) => Promise<void>
   createCustomer: (
@@ -40,6 +42,9 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
   isRefreshing: false,
   hasFetched: false,
   error: null,
+  loggedInUser: null,
+
+  setLoggedInUser: (user) => set({ loggedInUser: user }),
 
   onActiveTab: (tab: string) => set({ activeTab: tab }),
 

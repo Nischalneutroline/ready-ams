@@ -51,7 +51,7 @@ export const businessDetailSchema = z.object({
   address: z.array(businessAddressSchema),
   businessAvailability: z.array(businessAvailabilitySchema),
   holiday: z.array(holidaySchema),
-  businessOwner: z.string(),
+  businessOwner: z.string().optional(),
   supportBusinessDetail: z
     .object({
       supportPhone: z.string().optional(),

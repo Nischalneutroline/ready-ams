@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma"
 import { ZodError } from "zod"
 import { businessDetailSchema } from "@/features/business-detail/schemas/schema"
 import { Prisma } from "@prisma/client"
+import { auth, clerkClient } from "@clerk/nextjs/server"
 
 interface ParamsProps {
   params: Promise<{ id: string }>
@@ -33,9 +34,20 @@ export async function GET(req: NextRequest, { params }: ParamsProps) {
 
 // Update an existing business detail
 export async function PUT(req: NextRequest, { params }: ParamsProps) {
+  const { userId, orgId } = await auth()
+
+  if (!userId && !orgId) {
+    return NextResponse.json(
+      { message: "Unauthorized", success: false },
+      { status: 401 }
+    )
+  }
+
   try {
+    const client = await clerkClient()
     const { id } = await params // or Get the ID from the request body
     const body = await req.json()
+    const parsedData = businessDetailSchema.parse(body)
 
     if (!id) {
       return NextResponse.json(
@@ -43,8 +55,22 @@ export async function PUT(req: NextRequest, { params }: ParamsProps) {
         { status: 400 }
       )
     }
+    const existingBusiness = await prisma.businessDetail.findFirst({
+      where: {
+        email: parsedData.email,
+        NOT: { id },
+      },
+    })
 
-    const parsedData = businessDetailSchema.parse(body)
+    if (existingBusiness) {
+      return NextResponse.json(
+        {
+          message: "Business with this email already exists!",
+          success: false,
+        },
+        { status: 400 }
+      )
+    }
 
     // Log parsed data for debugging
     console.log("Parsed Data:", JSON.stringify(parsedData, null, 2))
@@ -57,6 +83,22 @@ export async function PUT(req: NextRequest, { params }: ParamsProps) {
         { status: 404 }
       )
     }
+
+    await client.organizations.updateOrganization(id, {
+      publicMetadata: {
+        industry: parsedData.industry,
+        email: parsedData.email,
+        phone: parsedData.phone,
+        website: parsedData.website,
+        address: {
+          city: parsedData.address[0].city,
+          street: parsedData.address[0].street,
+          country: parsedData.address[0].country,
+          googleMap: parsedData.address[0].googleMap,
+          zipCode: parsedData.address[0].zipCode,
+        },
+      },
+    })
 
     const deletedBusiness = await prisma.businessDetail.delete({
       where: { id },
@@ -129,12 +171,14 @@ export async function PUT(req: NextRequest, { params }: ParamsProps) {
     }
   } catch (error) {
     if (error instanceof Prisma.PrismaClientValidationError) {
-      console.error("Validation error:", error.message)
-      // Handle the validation error specifically
-      return {
-        error: "Validation failed",
-        details: error, // or use error.stack for full stack trace
-      }
+      return NextResponse.json(
+        {
+          message: "Prisma validation failed",
+          error: error.message,
+          success: false,
+        },
+        { status: 400 }
+      )
     }
     if (error instanceof ZodError) {
       return NextResponse.json(

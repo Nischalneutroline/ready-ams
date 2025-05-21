@@ -10,6 +10,8 @@ import { useCustomerStore } from "./customer/_store/customer-store"
 import { useBusinessStore } from "./business-settings/_store/business-store"
 import { Toaster } from "@/components/ui/sonner"
 import { useNotificationStore } from "./reminders/_store/reminder-store"
+import { useUser } from "@clerk/nextjs"
+import { Role, loggedInUser } from "./customer/_types/customer"
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   // Auto load services after admin loads
@@ -18,9 +20,30 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const { fetchBusinessById } = useBusinessStore()
   const { fetchCustomers } = useCustomerStore()
   const { fetchReminders, fetchAnnouncements } = useNotificationStore()
+  const { isSignedIn, isLoaded, user } = useUser()
+  const setUser = useCustomerStore((state) => state.setLoggedInUser)
   // Fetch services on app load
+
+  function isRole(value: any): value is Role {
+    return Object.values(Role).includes(value)
+  }
   useEffect(() => {
     console.log("App fully loaded, fetching appoinments, services, business...")
+
+    if (isLoaded && isSignedIn) {
+      const rawRole = user.publicMetadata.role
+
+      const userRole: Role = isRole(rawRole) ? rawRole : Role.USER // default fallback
+      const userInfo: loggedInUser = {
+        id: user.id,
+        email: user.emailAddresses[0]?.emailAddress || "",
+        name: `${user.firstName} ${user.lastName}` || "",
+        role: userRole,
+
+        // add other user fields as needed
+      }
+      setUser(userInfo)
+    }
     // Fetch once after app loads
     const id = "cmajja2e2005bmsaquylmq1u7" // Updated to match provided business data
     fetchBusinessById(id)

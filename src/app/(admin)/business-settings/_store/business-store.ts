@@ -6,6 +6,7 @@ import {
   getBusinessById,
 } from "@/app/(admin)/business-settings/_api-call/business-api-call"
 import { timeOptions } from "@/lib/lib"
+import { auth } from "@clerk/nextjs/server"
 
 // Define interfaces
 interface BusinessDetail {
@@ -47,6 +48,7 @@ interface BusinessDetail {
 
 interface BusinessState {
   businesses: BusinessDetail[]
+  currentOrganization: BusinessDetail | null
   selectedBusiness: BusinessDetail | null
   businessData: any | null
   activeTab: "Business Detail" | "Business hour & Availability"
@@ -59,7 +61,7 @@ interface BusinessState {
     isManualRefresh?: boolean
   ) => Promise<void>
   fetchBusinessById: (businessId: string) => Promise<void>
-  updateSelectedBusiness: (business: BusinessDetail) => void
+  setSelectedBusiness: (data: any) => void
   setBusinessData: (data: Partial<any>) => void
   setActiveTab: (
     tab: "Business Detail" | "Business hour & Availability"
@@ -101,16 +103,23 @@ export const useBusinessStore = create<BusinessState>((set, get) => ({
   businesses: [],
   selectedBusiness: null,
   businessData: null,
+  currentOrganization: null,
   activeTab: "Business Detail",
   loading: false,
   isRefreshing: false,
   hasFetched: false,
   error: null,
+  setSelectedBusiness: (data) => {
+    set({ selectedBusiness: data })
+  },
   fetchBusinesses: async (businessOwnerId, isManualRefresh = false) => {
     const { hasFetched } = get()
     if (!isManualRefresh && hasFetched) return
     try {
-      set({ [isManualRefresh ? "isRefreshing" : "loading"]: true, error: null })
+      set({
+        [isManualRefresh ? "isRefreshing" : "loading"]: true,
+        error: null,
+      })
       const response = await getBusinesses()
       if (response.success && Array.isArray(response.data)) {
         set({ businesses: response.data, hasFetched: true, error: null })
@@ -145,7 +154,7 @@ export const useBusinessStore = create<BusinessState>((set, get) => ({
       if (response) {
         const transformedData = transformBusinessDataForForms(response)
         set({
-          selectedBusiness: response,
+          selectedBusiness: response.data,
           businessData: transformedData,
           hasFetched: true,
           error: null,
@@ -170,7 +179,7 @@ export const useBusinessStore = create<BusinessState>((set, get) => ({
       set({ loading: false })
     }
   },
-  updateSelectedBusiness: (business) => set({ selectedBusiness: business }),
+
   setBusinessData: (data) =>
     set((state) => ({ businessData: { ...state.businessData, ...data } })),
   setActiveTab: (tab) => set({ activeTab: tab }),

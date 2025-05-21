@@ -24,6 +24,14 @@ export interface User {
   lastActiveAt: Date
   updatedAt: Date
 }
+export interface loggedInUser {
+  id: string
+  email: string // Require
+  name: string // Required
+  phone?: string // Optional
+  role: Role // Required
+  address?: Address // Optional
+}
 
 export interface ApiReturnType<T = any> {
   data?: T

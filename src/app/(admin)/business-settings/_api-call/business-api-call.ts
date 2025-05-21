@@ -1,5 +1,8 @@
 import { getBaseUrl } from "@/lib/baseUrl"
+import { useUser } from "@clerk/nextjs"
+import { auth } from "@clerk/nextjs/server"
 import axios from "axios"
+import { useBusinessStore } from "../_store/business-store"
 
 const api = axios.create({
   baseURL: getBaseUrl(),
@@ -7,6 +10,9 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 })
+
+
+
 export interface Business {
   id?: string
   name: string
@@ -38,8 +44,12 @@ async function getBusinesses() {
 async function getBusinessById(id: string) {
   try {
     const res = await api.get(`/api/business-detail/${id}`)
-    console.log(res, "inside Business details")
-    return res.data
+
+    return {
+      data: res.data,
+      success: true,
+      message: "Business fetched successfully!",
+    }
   } catch (error) {
     console.error("Error fetching business:", error)
     throw error
@@ -48,14 +58,16 @@ async function getBusinessById(id: string) {
 
 async function createBusiness(businessData: any) {
   try {
-    const { data } = await api.post("/api/business-detail", businessData)
-    return data
+    console.log("Payload sent to backend:", businessData)
+
+    const result = await api.post("/api/business-detail", businessData)
+
+    return result
   } catch (error) {
     console.error("Error creating business:", error)
     throw error
   }
 }
-
 async function updateBusiness(id: string, businessData: any) {
   try {
     console.log(businessData, "inside Business detailss")
