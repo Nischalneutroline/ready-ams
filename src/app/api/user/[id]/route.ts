@@ -136,7 +136,7 @@ export async function PUT(req: NextRequest, { params }: ParamsProps) {
     const updateData: Prisma.UserUpdateInput = {
       email: parsedData.email,
       name: parsedData.name,
-      phone: parsedData.phone,
+      phone: parsedData.phone || "Update Phone Number",
       address: parsedData.address && {
         update: {
           street: parsedData.address.street,

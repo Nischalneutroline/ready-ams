@@ -27,6 +27,8 @@ model User {
   role       Role     @default(USER) // User role (USER, ADMIN, SUPERADMIN)
   isActive   Boolean  @default(true) // Whether the user account is active
 
+  // OrganizationId, Org
+
   appointments  Appointment[] @relation("BookedUser") // Appointments booked by this user for themselves
   bookings      Appointment[] @relation("BookedBy") // Appointments booked by this user for others
   adminBookings Appointment[] @relation("CreatedBy") // Appointments created by this user (e.g., admin)

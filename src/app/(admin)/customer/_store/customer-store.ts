@@ -98,13 +98,14 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
   },
 
   createCustomer: async (postData: PostCustomerData) => {
+    console.log(postData, "PostData in store")
     try {
       const response: ApiReturnType<User> = await createCustomer(postData)
       if (response.success && response.data && !Array.isArray(response.data)) {
         const newCustomer = {
           ...response.data,
-          createdAt: new Date(response.data.createdAt),
-          updatedAt: new Date(response.data.updatedAt),
+          createdAt: response.data.createdAt,
+          updatedAt: response.data.updatedAt,
           isActive: response.data.isActive ?? true,
         }
         set((state) => ({

@@ -304,7 +304,6 @@ export default function BusinessSettingsForm({
     setIsSubmitting(true)
     try {
       const formattedData = transformFormDataForApi(business, data)
-
       let response
       if (isUpdateMode) {
         console.log("In edit mode", formattedData)

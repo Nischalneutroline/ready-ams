@@ -22,6 +22,7 @@ export const userSchema = z.object({
   name: z.string().min(1, "Name is required"),
   phone: z.string().optional(),
   role: roleSchema,
+  orgId: z.string().optional(),
   isActive: z.boolean().optional().default(true), // Optional, defaults to true
   address: addressSchema.optional(), // Optional address
 })

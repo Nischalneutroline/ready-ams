@@ -17,6 +17,7 @@ export interface PostCustomerData {
   phone?: string
   role: Role
   isActive?: boolean
+  orgId?: string
   address?: Address
 }
 
@@ -106,13 +107,14 @@ async function getCustomerById(id: string): Promise<ApiReturnType<User>> {
 async function createCustomer(
   customerData: PostCustomerData
 ): Promise<ApiReturnType<User>> {
+  console.log(customerData, "customer Data in the ui")
   try {
     const response: AxiosResponseType<User> = await api.post(
       "/api/user",
       customerData
     )
     const responseData = response.data
-    console.log("customer create response", responseData)
+    console.log("customer create response", response.data)
 
     if (responseData.success && responseData.data) {
       const normalizedData = {
