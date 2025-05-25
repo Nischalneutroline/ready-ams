@@ -66,16 +66,23 @@ export async function POST(req: NextRequest) {
             name,
             phone,
             role,
+            organizationID: orgId,
           },
         })
       }
 
       try {
-        // Add user to organization in Clerk (https://clerk.com/docs/reference/backend-api/tag/Organizations#operation/CreateOrganizationMembership)
-        await client.organizations.createOrganizationMembership({
-          organizationId: orgId,
-          userId: existingClerkUser.id,
-          role: clerkRole,
+        const newUserRole =
+          await client.organizations.createOrganizationMembership({
+            organizationId: orgId,
+            userId: existingClerkUser.id,
+            role: clerkRole,
+          })
+
+        await client.users.updateUser(existingClerkUser.id, {
+          publicMetadata: {
+            role: "USER",
+          },
         })
 
         return NextResponse.json(
@@ -211,5 +218,3 @@ export async function GET() {
     )
   }
 }
-
-

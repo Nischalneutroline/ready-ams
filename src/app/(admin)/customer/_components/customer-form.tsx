@@ -6,7 +6,15 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import InputField from "@/components/custom-form-fields/input-field"
-import { User, Mail, Lock, Eye, EyeOff, ShieldAlert } from "lucide-react"
+import {
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ShieldAlert,
+  IdCard,
+} from "lucide-react"
 import PhoneField from "@/components/custom-form-fields/phone-field"
 import ToggleSwitch from "@/components/custom-form-fields/toggle-switch"
 import { useParams, useRouter } from "next/navigation"
@@ -19,6 +27,7 @@ import {
 } from "@/app/(admin)/customer/_schema/customer"
 import { PostCustomerData } from "../_api-call/customer-api-call"
 import { useAuth } from "@clerk/nextjs"
+import SelectField from "@/components/custom-form-fields/select-field"
 
 // Form data type
 type FormData = {
@@ -27,14 +36,23 @@ type FormData = {
   phone: string
   password?: string
   isActive: boolean
+  role: Role
 }
+
+const roleOptions = [
+  { label: "Admin", value: Role.ADMIN },
+  { label: "User", value: Role.USER },
+  { label: "Superadmin", value: Role.SUPERADMIN },
+]
 
 const CustomerForm = () => {
   const { orgId } = useAuth()
   const router = useRouter()
   const params = useParams()
   const id = params.id as string | undefined
+  const [email, setEmail] = useState("")
   const isEditMode = !!id
+  const [isVerifying, setIsVerifying] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(isEditMode)
@@ -49,6 +67,7 @@ const CustomerForm = () => {
       email: "",
       phone: "",
       password: "",
+      role: Role.USER,
       isActive: true,
     },
   })
@@ -67,8 +86,11 @@ const CustomerForm = () => {
               phone: customer.phone || "",
               password: "",
               isActive: customer.isActive ?? true,
+              role: customer.role || "USER",
             }
             console.log("Setting form data:", formData)
+
+            setEmail(formData.email)
             form.reset(formData)
           } else {
             router.push("/customer")
@@ -88,13 +110,14 @@ const CustomerForm = () => {
 
   // Handle form submission
   const handleSubmit = async (formData: FormData) => {
+    const roles = formData.role
     setIsSubmitting(true)
     try {
       const customerData: PostCustomerData = {
         name: formData.fullName,
         email: formData.email,
         phone: formData.phone,
-        role: Role.USER,
+        role: formData.role as Role,
         password: formData.password || undefined,
         isActive: formData.isActive,
         orgId: orgId as string,
@@ -104,8 +127,12 @@ const CustomerForm = () => {
 
       let result
       if (isEditMode && id) {
-        console.log(customerData)
+        console.log(customerData, "customer data in edit")
         result = await updateCustomer(id, customerData)
+        // if (email === customerData.email) {
+        //   setIsVerifying(true)
+        //   await
+        // }
       } else {
         const createCustomerData = {
           ...customerData,
@@ -117,9 +144,9 @@ const CustomerForm = () => {
         result = await createCustomer(createCustomerData)
       }
 
-      // if (result.success) {
-      //   router.push("/customer")
-      // }
+      if (result.success) {
+        router.push("/customer")
+      }
       // Toast is handled by the store
     } catch (error) {
       console.error(
@@ -171,7 +198,17 @@ const CustomerForm = () => {
                 placeholder="Enter email address"
                 icon={Mail}
               />
-              <PhoneField name="phone" label="Phone" />
+              <div className="grid grid-cols-2 gap-2 justify-center">
+                <PhoneField name="phone" label="Phone" />
+                <SelectField
+                  name="role"
+                  label="Select a Role"
+                  options={roleOptions}
+                  icon={IdCard}
+                  placeholder={"Select a role"}
+                  disabled={isLoading && orgId}
+                />
+              </div>
               <ToggleSwitch
                 name="isActive"
                 label="Active"

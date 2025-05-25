@@ -24,6 +24,7 @@ model User {
   createdAt  DateTime @default(now()) // Timestamp when user was created
   updatedAt  DateTime @updatedAt // Timestamp for last update
   lastActive DateTime @default(now()) // Last activity timestamp
+  organizationID String? // User registered Organization
   role       Role     @default(USER) // User role (USER, ADMIN, SUPERADMIN)
   isActive   Boolean  @default(true) // Whether the user account is active
 

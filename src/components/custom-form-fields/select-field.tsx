@@ -45,7 +45,6 @@ const SelectField = ({
       control={control}
       name={name}
       render={({ field }) => {
-        console.log(`${name} field value:`, field.value)
         // console.log(`${name} options:`, options)
         return (
           <FormItem className="flex flex-col">

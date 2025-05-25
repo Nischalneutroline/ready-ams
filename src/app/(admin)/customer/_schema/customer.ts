@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { Role } from "../_types/customer"
 
 // Zod schema for Address
 export const addressSchema = z.object({
@@ -35,6 +36,7 @@ export const createSchema = z.object({
   phone: z.string().min(1, "Phone number is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   isActive: z.boolean(),
+  role: z.nativeEnum(Role),
 })
 
 export const updateSchema = z.object({
@@ -43,4 +45,5 @@ export const updateSchema = z.object({
   phone: z.string().min(1, "Phone number is required"),
   password: z.string().optional(),
   isActive: z.boolean(),
+  role: z.nativeEnum(Role),
 })

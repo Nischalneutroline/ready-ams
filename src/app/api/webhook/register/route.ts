@@ -6,6 +6,19 @@ import { clerkClient } from "@clerk/clerk-sdk-node"
 import { prisma } from "@/lib/prisma"
 import { Role } from "@prisma/client"
 
+function mapOrgRoleToPrismaRole(orgRoleStr: string): Role {
+  switch (orgRoleStr.toLowerCase()) {
+    case "admin":
+    case "org:admin":
+      return Role.ADMIN
+    case "org:superadmin":
+      return Role.SUPERADMIN
+    case "org:customer":
+    default:
+      return Role.USER
+  }
+}
+
 export async function POST(req: Request) {
   console.log("Webhook endpoint hit")
 
@@ -99,6 +112,7 @@ export async function POST(req: Request) {
             phone: null,
             role: "USER",
             password: "",
+            organizationID: "",
           },
         })
         console.log(`Created user in Prisma: ${userId}`)
@@ -226,46 +240,46 @@ export async function POST(req: Request) {
       const userId = public_user_data.user_id
       const orgRole: string = role
 
-      // Map incoming org membership role string to Prisma Role enum
-      // Import Role enum from Prisma client
-      // put this at the top of your file
-
-      // Create a function or inline map to convert Clerk org role string to your enum
-      function mapOrgRoleToPrismaRole(orgRoleStr: string): Role {
-        switch (orgRoleStr.toLowerCase()) {
-          case "admin":
-          case "org:admin":
-            return Role.ADMIN
-          case "org:superadmin":
-            return Role.SUPERADMIN
-          case "org:customer":
-          default:
-            return Role.USER
-        }
-      }
-
       const prismaRole = mapOrgRoleToPrismaRole(orgRole)
 
       try {
-        // Update user role in DB with mapped enum value
+        // Sync to DB
         await prisma.user.update({
           where: { id: userId },
           data: {
             role: prismaRole,
-            // optionally update organizationId if needed:
-            // organizationId: organization.id,
+            organizationID: organization.id,
           },
         })
-        console.log(
-          `Assigned role '${prismaRole}' to user ${userId} in org ${organization.id}`
-        )
-      } catch (err) {
-        console.error("Error assigning role in org", err)
-      }
 
-      return NextResponse.json({
-        message: "organizationMembership.created handled",
-      })
+        // Update Clerk metadata
+        await clerkClient.users.updateUser(userId, {
+          publicMetadata: {
+            role: prismaRole.toLowerCase(),
+            organizationID: organization.id,
+          },
+        })
+
+        console.log(
+          `✅ Assigned role '${prismaRole}' to user ${userId} in org ${organization.id}`
+        )
+
+        return NextResponse.json({
+          message: "organizationMembership.created handled",
+          success: true,
+        })
+      } catch (err) {
+        console.error("❌ Error assigning role in org", err)
+
+        return NextResponse.json(
+          {
+            message: "Failed to handle organizationMembership.created",
+            error: err instanceof Error ? err.message : String(err),
+            success: false,
+          },
+          { status: 500 }
+        )
+      }
     }
 
     // -------------------------------
@@ -278,16 +292,18 @@ export async function POST(req: Request) {
       // Map incoming org membership role string to Prisma Role enum
       // Import Role enum from Prisma client
       // put this at the top of your file
-
+      NextResponse.json({
+        message: `User role updated into ${orgRole}`,
+      })
       // Create a function or inline map to convert Clerk org role string to your enum
       function mapOrgRoleToPrismaRole(orgRoleStr: string): Role {
         switch (orgRoleStr.toLowerCase()) {
-          case "admin":
           case "org:admin":
             return Role.ADMIN
           case "org:superadmin":
             return Role.SUPERADMIN
           case "org:customer":
+            return Role.USER
           default:
             return Role.USER
         }

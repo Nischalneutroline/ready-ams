@@ -227,7 +227,6 @@ export default function BusinessSettingsForm({
 
   const { businessData } = useBusinessStore()
   const business = businessData || propBusiness
-  console.log(business, "Business availability data cha ki nai?")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { setBusinessData } = useBusinessStore()
 
@@ -290,6 +289,9 @@ export default function BusinessSettingsForm({
   }, [])
 
   const isUpdateMode = !!business?.id
+
+
+  
   const onSubmit = async (data: any) => {
     console.log(
       "BusinessSettingsForm: Form data before transformation:",

@@ -5,8 +5,10 @@ import { prisma } from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
 import { auth, clerkClient } from "@clerk/nextjs/server"
 
+const client = await clerkClient()
+
 export async function POST(req: NextRequest) {
-  const { userId,orgId } = await auth()
+  const { userId, orgId } = await auth()
 
   if (!userId && !orgId) {
     return NextResponse.json(
@@ -16,7 +18,6 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const client = await clerkClient()
     const body = await req.json()
     const parsedData = businessDetailSchema.parse(body)
 
@@ -27,24 +28,29 @@ export async function POST(req: NextRequest) {
 
     if (existingBusiness) {
       return NextResponse.json(
-        {
-          message: "Business with this email already exists!",
-          success: false,
-        },
+        { message: "Business with this email already exists!", success: false },
         { status: 400 }
       )
     }
 
-    // Create organization in Clerk
-    const name = parsedData.name
+    // Get Clerk user
     const user = await client.users.getUser(userId)
-    const createdBy = user?.id
+    if (!user || !user?.id) {
+      return NextResponse.json(
+        { message: "User not found in Clerk", success: false },
+        { status: 400 }
+      )
+    }
 
+    const createdBy: string = user.id
+
+    // Create organization in Clerk
     const organization = await client.organizations.createOrganization({
-      name,
+      name: parsedData.name,
       createdBy,
     })
 
+    // Update organization metadata
     await client.organizations.updateOrganization(organization.id, {
       publicMetadata: {
         industry: parsedData.industry,
@@ -61,7 +67,7 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    // Create new business in Prisma
+    // Create business in DB
     const newBusiness = await prisma.businessDetail.create({
       data: {
         id: organization.id,
@@ -99,11 +105,7 @@ export async function POST(req: NextRequest) {
       },
       include: {
         address: true,
-        businessAvailability: {
-          include: {
-            timeSlots: true,
-          },
-        },
+        businessAvailability: { include: { timeSlots: true } },
         holiday: true,
       },
     })
@@ -136,6 +138,17 @@ export async function POST(req: NextRequest) {
           success: false,
         },
         { status: 400 }
+      )
+    }
+
+    if ((error as any)?.clerkError && Array.isArray((error as any).errors)) {
+      return NextResponse.json(
+        {
+          message: "Clerk API Error",
+          error: (error as any).errors,
+          success: false,
+        },
+        { status: 422 }
       )
     }
 
