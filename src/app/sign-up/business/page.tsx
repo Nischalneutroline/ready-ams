@@ -1,6 +1,6 @@
 "use client"
 
-import { useSignUp, useSession, useClerk } from "@clerk/clerk-react"
+import { useSignUp, useSession, useClerk, useUser } from "@clerk/clerk-react"
 import React, { useState } from "react"
 import {
   Eye,
@@ -35,6 +35,7 @@ export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
+  const { user } = useUser() // Get the current user client-side
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -75,6 +76,8 @@ export default function SignUp() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId })
+        
+
         router.push("/sign-up/business/onboarding")
       } else {
         setError("Unexpected verification status. Please try again.")

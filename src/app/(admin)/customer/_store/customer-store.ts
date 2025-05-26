@@ -101,6 +101,10 @@ export const useCustomerStore = create<CustomerState>((set, get) => ({
     console.log(postData, "PostData in store")
     try {
       const response: ApiReturnType<User> = await createCustomer(postData)
+      console.log(
+        response.data,
+        "response data after the invitation is sent and its is updated into the store"
+      )
       if (response.success && response.data && !Array.isArray(response.data)) {
         const newCustomer = {
           ...response.data,

@@ -1,8 +1,8 @@
 import { Webhook } from "svix"
 import { headers } from "next/headers"
 import { NextResponse } from "next/server"
-import { WebhookEvent } from "@clerk/nextjs/server"
-import { clerkClient } from "@clerk/clerk-sdk-node"
+import { WebhookEvent, clerkClient } from "@clerk/nextjs/server"
+
 import { prisma } from "@/lib/prisma"
 import { Role } from "@prisma/client"
 
@@ -19,9 +19,9 @@ function mapOrgRoleToPrismaRole(orgRoleStr: string): Role {
   }
 }
 
-export async function POST(req: Request) {
-  console.log("Webhook endpoint hit")
+const client = await clerkClient()
 
+export async function POST(req: Request) {
   const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET_KEY
   if (!WEBHOOK_SECRET) {
     console.error("Missing CLERK_WEBHOOK_SECRET environment variable")
@@ -72,9 +72,15 @@ export async function POST(req: Request) {
     console.log(`Received webhook event: ${type}`)
 
     if (type === "user.created") {
-      console.log("Processing user.created event", { userId: data.id })
+      console.log("Processing user.created event", data, { userId: data.id })
 
-      const { id: userId, email_addresses, first_name, last_name } = data
+      const {
+        id: userId,
+        email_addresses,
+        first_name,
+        last_name,
+
+      } = data
       if (!userId) {
         console.error("Missing userId in user.created event")
         return NextResponse.json(
@@ -86,9 +92,10 @@ export async function POST(req: Request) {
       const email = email_addresses?.[0]?.email_address
       const name = `${first_name || ""} ${last_name || ""}`.trim() || "Unknown"
 
+
       // Step 1: Update public metadata in Clerk
       try {
-        await clerkClient.users.updateUserMetadata(userId, {
+        await client.users.updateUserMetadata(userId, {
           publicMetadata: {
             role: "org:customer",
           },
@@ -109,7 +116,7 @@ export async function POST(req: Request) {
             id: userId,
             email: email || "",
             name,
-            phone: null,
+            phone:null,
             role: "USER",
             password: "",
             organizationID: "",
@@ -151,8 +158,8 @@ export async function POST(req: Request) {
 
       try {
         // 👇 Clerk API: Get all organization memberships for this user
-        const memberships =
-          await clerkClient.users.getOrganizationMembershipList({ userId })
+        const memberships: any =
+          await client.users.getOrganizationMembershipList({ userId })
         const orgRole = memberships[0]?.role || "org:customer"
 
         if (orgRole) {
@@ -184,7 +191,7 @@ export async function POST(req: Request) {
 
       // ✏️ Step 2: Update the user's public metadata in Clerk
       try {
-        await clerkClient.users.updateUserMetadata(userId, {
+        await client.users.updateUserMetadata(userId, {
           publicMetadata: {
             role, // Store internal role in Clerk
           },
@@ -253,7 +260,7 @@ export async function POST(req: Request) {
         })
 
         // Update Clerk metadata
-        await clerkClient.users.updateUser(userId, {
+        await client.users.updateUser(userId, {
           publicMetadata: {
             role: prismaRole.toLowerCase(),
             organizationID: organization.id,

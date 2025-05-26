@@ -630,7 +630,7 @@
 // export default BusinessDetailForm
 // BusinessDetailForm.tsx
 "use client"
-import { useAuth, useOrganization } from "@clerk/nextjs"
+import { useAuth, useOrganization, useOrganizationList } from "@clerk/nextjs"
 import { useForm, FormProvider } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
@@ -660,8 +660,6 @@ import { useEffect } from "react"
 import { useBusinessStore } from "@/app/(admin)/business-settings/_store/business-store"
 import { useUser } from "@clerk/nextjs"
 import { getBusinessById } from "../_api-call/business-api-call"
-import { business } from "../../../../features/business-detail/action/action"
-import { User } from "@clerk/nextjs/server"
 
 export const transformBusinessData = (data: any) => {
   const address = Array.isArray(data.address) ? data.address[0] || {} : {}
@@ -760,14 +758,18 @@ const BusinessDetailForm = ({
   } = useBusinessStore()
   const { user } = useUser()
 
-  const { isLoaded, organization }: any = useOrganization()
-
-  // const activeOrganization = fetchBusinessById(organization?.id as string)
+  const { organization } = useOrganization()
+  const { setActive } = useOrganizationList()
 
   const isUpdateMode = !!selectedBusiness?.id
 
   // Initialize form with businessData only on mount or when businessData.id changes
   let id
+  useEffect(() => {
+    if (setActive && organization?.id) {
+      setActive({ organization: organization.id })
+    }
+  }, [organization?.id])
   useEffect(() => {
     if (selectedBusiness?.id) {
       const dataBeforeUpdate = transformBusinessData(selectedBusiness)

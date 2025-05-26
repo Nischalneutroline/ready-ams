@@ -49,8 +49,8 @@ export const businessDetailSchema = z.object({
   status: z.nativeEnum(BusinessStatus),
   timeZone: z.string().optional(),
   address: z.array(businessAddressSchema),
-  businessAvailability: z.array(businessAvailabilitySchema),
-  holiday: z.array(holidaySchema),
+  businessAvailability: z.array(businessAvailabilitySchema).optional(),
+  holiday: z.array(holidaySchema).optional(),
   businessOwner: z.string().optional(),
   supportBusinessDetail: z
     .object({

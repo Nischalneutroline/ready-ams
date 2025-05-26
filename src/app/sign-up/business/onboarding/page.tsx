@@ -15,10 +15,13 @@ import LegalComplianceStep from "./steps/LegalComplianceStep"
 import BrandingStep from "./steps/BrandingStep"
 import CompletionStep from "./steps/CompletionStep"
 import { useBusinessStore } from "@/app/(admin)/business-settings/_store/business-store"
-import { useUser } from "@clerk/nextjs"
+import { useOrganizationList, useUser } from "@clerk/nextjs"
+import { createBusiness } from "@/app/(admin)/business-settings/_api-call/business-api-call"
+import { useRouter } from "next/navigation"
+import { clerkClient } from "@clerk/nextjs/server"
 
 type FormValues = {
-  businessName: string
+  name: string
   industry: string
   email: string
   phone: string
@@ -36,7 +39,7 @@ type FormValues = {
 }
 
 const schema = z.object({
-  businessName: z.string().min(1, "Business name is required"),
+  name: z.string().min(1, "Business name is required"),
   industry: z.string().min(1, "Industry selection is required"),
   email: z.string().email("Invalid email address").min(1, "Email is required"),
   phone: z.string().min(1, "Phone number is required"),
@@ -88,16 +91,18 @@ const steps = [
   },
 ]
 
-export default function BusinessOnboarding() {
+export default async function BusinessOnboarding() {
   const [currentStep, setCurrentStep] = useState(1)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const { setBusinessData, setActiveTab } = useBusinessStore()
+  const client = await clerkClient()
   const { user } = useUser()
+  const router = useRouter()
 
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
-      businessName: "",
+      name: "",
       industry: "",
       email: "",
       phone: "",
@@ -116,8 +121,8 @@ export default function BusinessOnboarding() {
   })
 
   // Calculate progress based on 5 total steps (4 form steps + 1 completion step)
-  const totalSteps = steps.length + 1
-  const progress = ((currentStep - 1) / (totalSteps - 1)) * 100
+
+  const progress = ((currentStep - 1) / steps.length) * 100
 
   const validateCurrentStep = async () => {
     const values = form.getValues()
@@ -125,7 +130,7 @@ export default function BusinessOnboarding() {
 
     switch (currentStep) {
       case 1:
-        fieldsToValidate = ["businessName", "industry", "email", "phone"]
+        fieldsToValidate = ["name", "industry", "email", "phone"]
         break
       case 2:
         fieldsToValidate = ["city", "street", "zipCode", "country"]
@@ -156,7 +161,7 @@ export default function BusinessOnboarding() {
     }
 
     // Allow moving to completion step (step 5)
-    if (currentStep <= steps.length) {
+    if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1)
     }
   }
@@ -178,7 +183,45 @@ export default function BusinessOnboarding() {
       toast.error("Please login to continue")
       return
     }
+    console.log(data, "data ")
 
+    const organizationData = {
+      name: data.name,
+      industry: data.industry,
+      email: data.email,
+      phone: data.phone,
+      website: data.website,
+      businessOwner: user.id,
+      address: [
+        {
+          street: data.street,
+          city: data.city,
+          country: data.country,
+          zipCode: data.zipCode,
+          googleMap: data.googleMap,
+        },
+      ],
+      businessRegistrationNumber: data.registrationNumber,
+      // taxId: data.taxId ? true : false,
+      // logo: data.logo ? true : false,
+      status: data.visibility,
+    }
+
+    try {
+      const response = await createBusiness(organizationData)
+
+      console.log("Organization created:", response)
+      await client.users.updateUser(user.id, {
+        publicMetadata: {
+          role: "ADMIN",
+        },
+      })
+      if (response) {
+        router.push("/business-settings")
+      }
+    } catch (error) {
+      console.error("Error creating organization:", error)
+    }
     setBusinessData(data)
     toast.success("Business details saved successfully!")
     setActiveTab("Business hour & Availability")
@@ -290,31 +333,22 @@ export default function BusinessOnboarding() {
               </div>
 
               {/* Navigation */}
-              {currentStep <= steps.length && (
-                <div className="px-8 pb-8">
-                  <div className="flex justify-between">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={prevStep}
-                      disabled={currentStep === 1}
-                      className="flex items-center gap-2"
-                    >
-                      <ChevronLeft className="w-4 h-4" />
-                      Previous
-                    </Button>
-                    <Button
-                      type="button"
-                      onClick={nextStep}
-                      className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-                    >
-                      {currentStep === steps.length
-                        ? "Complete Setup"
-                        : "Continue"}
-                      <ChevronRight className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
+              {currentStep === steps.length ? (
+                <Button
+                  type="submit"
+                  className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                >
+                  Complete Setup
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={nextStep}
+                  className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+                >
+                  Continue
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
               )}
             </Card>
           </form>

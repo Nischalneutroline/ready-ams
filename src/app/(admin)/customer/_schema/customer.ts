@@ -27,6 +27,20 @@ export const userSchema = z.object({
   isActive: z.boolean().optional().default(true), // Optional, defaults to true
   address: addressSchema.optional(), // Optional address
 })
+// export const userSchema = z.object({
+//   id: z.string().optional(),
+//   email: z.string().email("Invalid email format"),
+//   password: z
+//     .string()
+//     .min(6, "Password must be at least 6 characters long")
+//     .optional(),
+//   name: z.string().min(1, "Name is required"),
+//   phone: z.string().optional(),
+//   role: roleSchema, // make sure this matches your request exactly
+//   orgId: z.string().min(1, "Organization ID is required"),
+//   isActive: z.boolean().optional().default(true),
+//   address: addressSchema.optional(),
+// })
 
 // --- Admin User CRUD
 // Validation schemas

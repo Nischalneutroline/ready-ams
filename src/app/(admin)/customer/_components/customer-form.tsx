@@ -129,10 +129,9 @@ const CustomerForm = () => {
       if (isEditMode && id) {
         console.log(customerData, "customer data in edit")
         result = await updateCustomer(id, customerData)
-        // if (email === customerData.email) {
-        //   setIsVerifying(true)
-        //   await
-        // }
+        if (email === customerData.email) {
+          setIsVerifying(true)
+        }
       } else {
         const createCustomerData = {
           ...customerData,

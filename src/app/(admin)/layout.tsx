@@ -10,8 +10,9 @@ import { useCustomerStore } from "./customer/_store/customer-store"
 import { useBusinessStore } from "./business-settings/_store/business-store"
 import { Toaster } from "@/components/ui/sonner"
 import { useNotificationStore } from "./reminders/_store/reminder-store"
-import { useUser } from "@clerk/nextjs"
+import { useOrganizationList, useUser } from "@clerk/nextjs"
 import { Role, loggedInUser } from "./customer/_types/customer"
+import { Organization } from "@clerk/nextjs/server"
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   // Auto load services after admin loads
@@ -22,6 +23,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const { fetchReminders, fetchAnnouncements } = useNotificationStore()
   const { isSignedIn, isLoaded, user } = useUser()
   const setUser = useCustomerStore((state) => state.setLoggedInUser)
+
+  const { setActive } = useOrganizationList()
   // Fetch services on app load
 
   function isRole(value: any): value is Role {

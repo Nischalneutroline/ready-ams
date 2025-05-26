@@ -128,28 +128,28 @@ export async function PUT(req: NextRequest, { params }: ParamsProps) {
             })),
           },
           // Handle business availability
-          businessAvailability: {
-            create: parsedData.businessAvailability.map((availability) => ({
-              weekDay: availability.weekDay,
-              type: availability.type,
-              timeSlots: {
-                create: availability.timeSlots.map((slot) => ({
-                  type: slot.type,
-                  startTime: slot.startTime,
-                  endTime: slot.endTime,
-                })),
-              },
-            })),
-          },
+          // businessAvailability: {
+          //   create: parsedData.businessAvailability.map((availability) => ({
+          //     weekDay: availability.weekDay,
+          //     type: availability.type,
+          //     timeSlots: {
+          //       create: availability.timeSlots.map((slot) => ({
+          //         type: slot.type,
+          //         startTime: slot.startTime,
+          //         endTime: slot.endTime,
+          //       })),
+          //     },
+          //   })),
+          // },
 
           // Handle holidays
-          holiday: {
-            create: parsedData.holiday.map((holiday) => ({
-              holiday: holiday.holiday,
-              type: holiday.type,
-              date: holiday.date || null,
-            })),
-          },
+          // holiday: {
+          //   create: parsedData.holiday.map((holiday) => ({
+          //     holiday: holiday.holiday,
+          //     type: holiday.type,
+          //     date: holiday.date || null,
+          //   })),
+          // },
         },
         include: {
           address: true,

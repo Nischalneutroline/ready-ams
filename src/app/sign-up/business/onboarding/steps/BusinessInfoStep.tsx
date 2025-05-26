@@ -23,7 +23,7 @@ export default function BusinessInfoStep() {
       className="grid grid-cols-1 md:grid-cols-2 gap-6"
     >
       <InputField
-        name="businessName"
+        name="name"
         label="Business Name"
         placeholder="E.g. Neutroline Inc."
         icon={Building2}

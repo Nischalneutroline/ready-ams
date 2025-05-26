@@ -8,9 +8,9 @@ import { auth, clerkClient } from "@clerk/nextjs/server"
 const client = await clerkClient()
 
 export async function POST(req: NextRequest) {
-  const { userId, orgId } = await auth()
+  const { userId } = await auth()
 
-  if (!userId && !orgId) {
+  if (!userId) {
     return NextResponse.json(
       { message: "Unauthorized", success: false },
       { status: 401 }
@@ -79,29 +79,30 @@ export async function POST(req: NextRequest) {
         businessRegistrationNumber: parsedData.businessRegistrationNumber,
         timeZone: parsedData.timeZone,
         status: parsedData.status,
+        businessOwner: user.id,
         address: {
           create: parsedData.address,
         },
-        businessAvailability: {
-          create: parsedData.businessAvailability.map((availability) => ({
-            weekDay: availability.weekDay,
-            type: availability.type,
-            timeSlots: {
-              create: availability.timeSlots.map((timeSlot) => ({
-                type: timeSlot.type,
-                startTime: timeSlot.startTime,
-                endTime: timeSlot.endTime,
-              })),
-            },
-          })),
-        },
-        holiday: {
-          create: parsedData.holiday.map((holiday) => ({
-            holiday: holiday.holiday,
-            type: holiday.type,
-            date: holiday.date || null,
-          })),
-        },
+        // businessAvailability: {
+        //   create: parsedData.businessAvailability.map((availability) => ({
+        //     weekDay: availability.weekDay,
+        //     type: availability.type,
+        //     timeSlots: {
+        //       create: availability.timeSlots.map((timeSlot) => ({
+        //         type: timeSlot.type,
+        //         startTime: timeSlot.startTime,
+        //         endTime: timeSlot.endTime,
+        //       })),
+        //     },
+        //   })),
+        // },
+        // holiday: {
+        //   create: parsedData.holiday.map((holiday) => ({
+        //     holiday: holiday.holiday,
+        //     type: holiday.type,
+        //     date: holiday.date || null,
+        //   })),
+        // },
       },
       include: {
         address: true,

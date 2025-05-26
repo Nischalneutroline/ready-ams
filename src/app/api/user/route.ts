@@ -10,6 +10,7 @@ import { userSchema } from "@/app/(admin)/customer/_schema/customer"
 import { Organization, clerkClient } from "@clerk/nextjs/server"
 import Error from "next/error"
 import { Address } from "../../(admin)/customer/_types/customer"
+import { Phone } from "lucide-react"
 
 // Enum for all the roles available in the organization
 const roleMapping = {
@@ -26,7 +27,7 @@ export async function POST(req: NextRequest) {
     // Parse and validate request body using Zod schema
     const body = (await req.json()) as any
     const { email, password, name, phone, role, orgId } = userSchema.parse(body)
-
+    console.log(body, "json in api call")
     // Ensure organization ID is provided
     if (!orgId) {
       return NextResponse.json(
@@ -79,11 +80,12 @@ export async function POST(req: NextRequest) {
             role: clerkRole,
           })
 
-        await client.users.updateUser(existingClerkUser.id, {
-          publicMetadata: {
-            role: "USER",
-          },
-        })
+        // await client.users.updateUser(existingClerkUser.id, {
+        //   publicMetadata: {
+        //     role: "USER",
+        //     phone,
+        //   },
+        // })
 
         return NextResponse.json(
           {
@@ -132,7 +134,14 @@ export async function POST(req: NextRequest) {
           { status: 201 }
         )
       } catch (error: any) {
-        // Handle errors during invitation
+        console.error("Invitation Error:", {
+          name: error.name,
+          message: error.message,
+          status: error.status,
+          code: error?.errors?.[0]?.code,
+          full: JSON.stringify(error, null, 2),
+        })
+
         return NextResponse.json({
           success: false,
           message: "Cannot send invitation",
@@ -140,6 +149,7 @@ export async function POST(req: NextRequest) {
             name: error.name,
             message: error.message,
             stack: error.stack,
+            raw: error, // include this for debug
           },
         })
       }
