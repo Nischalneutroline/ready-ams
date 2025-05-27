@@ -4,6 +4,7 @@ import { ZodError } from "zod"
 import { prisma } from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
 import { auth, clerkClient } from "@clerk/nextjs/server"
+import { business } from "../../../features/business-detail/action/action"
 
 const client = await clerkClient()
 
@@ -166,8 +167,9 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET() {
+  let businessDetails: any = []
   try {
-    const businessDetails = await prisma.businessDetail.findMany({
+    businessDetails = await prisma.businessDetail.findMany({
       include: {
         address: true,
         businessAvailability: {
@@ -197,6 +199,7 @@ export async function GET() {
   } catch (error) {
     return NextResponse.json(
       {
+
         message: "Failed to fetch business details!",
         success: false,
         error: error instanceof Error ? error.message : String(error),

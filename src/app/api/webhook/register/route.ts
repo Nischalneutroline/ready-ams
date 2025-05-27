@@ -74,13 +74,7 @@ export async function POST(req: Request) {
     if (type === "user.created") {
       console.log("Processing user.created event", data, { userId: data.id })
 
-      const {
-        id: userId,
-        email_addresses,
-        first_name,
-        last_name,
-
-      } = data
+      const { id: userId, email_addresses, first_name, last_name } = data
       if (!userId) {
         console.error("Missing userId in user.created event")
         return NextResponse.json(
@@ -91,7 +85,6 @@ export async function POST(req: Request) {
 
       const email = email_addresses?.[0]?.email_address
       const name = `${first_name || ""} ${last_name || ""}`.trim() || "Unknown"
-
 
       // Step 1: Update public metadata in Clerk
       try {
@@ -116,7 +109,7 @@ export async function POST(req: Request) {
             id: userId,
             email: email || "",
             name,
-            phone:null,
+            phone: null,
             role: "USER",
             password: "",
             organizationID: "",
@@ -135,7 +128,7 @@ export async function POST(req: Request) {
 
     if (type === "user.updated") {
       console.log("Processing user.updated event", { userId: data.id })
-
+      console.log("✅ Clerk Webhook Received", data)
       const { id: userId, email_addresses, first_name, last_name } = data
 
       // ✅ Basic validation: Make sure we got a valid user ID

@@ -15,15 +15,15 @@ interface ParamsProps {
 export async function GET(req: NextRequest, { params }: ParamsProps) {
   try {
     const { id } = await params
-    const announcement = await getBusinessDetailById(id)
-
-    if (!announcement) {
+    const businessDetails = await getBusinessDetailById(id)
+    console.log(businessDetails, "businessDetails")
+    if (!businessDetails) {
       return NextResponse.json(
         { error: "Business Detail with id not found" },
         { status: 404 }
       )
     }
-    return NextResponse.json(announcement, { status: 200 })
+    return NextResponse.json(businessDetails, { status: 200 })
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch business-detail" },

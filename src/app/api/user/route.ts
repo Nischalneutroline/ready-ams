@@ -7,7 +7,7 @@ import * as bcrypt from "bcryptjs"
 import { Prisma } from "@prisma/client"
 import { User } from "@/app/(admin)/customer/_types/customer"
 import { userSchema } from "@/app/(admin)/customer/_schema/customer"
-import { Organization, clerkClient } from "@clerk/nextjs/server"
+import { Organization, auth, clerkClient } from "@clerk/nextjs/server"
 import Error from "next/error"
 import { Address } from "../../(admin)/customer/_types/customer"
 import { Phone } from "lucide-react"
@@ -186,8 +186,22 @@ export async function POST(req: NextRequest) {
 // GET: Retrieve all Users
 export async function GET() {
   try {
+    // Step 1: Get the current user session
+    const { orgId } = await auth()
+
+    // Step 2: Ensure orgId exists
+    if (!orgId) {
+      return NextResponse.json(
+        { message: "Unauthorized. Organization not found.", success: false },
+        { status: 401 }
+      )
+    }
+
     // get all users
     const users = await prisma.user.findMany({
+      where: {
+        organizationID: orgId, // Assuming your Prisma model uses this field
+      },
       select: {
         id: true,
         email: true,
@@ -195,6 +209,7 @@ export async function GET() {
         phone: true,
         role: true,
         isActive: true,
+        organizationID: true,
         address: {
           select: {
             street: true,
