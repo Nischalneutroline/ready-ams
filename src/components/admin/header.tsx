@@ -31,18 +31,6 @@ const Header = () => {
           />
         </div>
         {/* Notifications & Avatar */}
-        <div className="flex gap-2 items-center ml-4">
-          <SignedOut>
-            <SignInButton>Sign In</SignInButton>
-            <SignUpButton>Sign Up</SignUpButton>
-          </SignedOut>
-          <SignedIn>
-            <div>
-              <OrganizationSwitcher hidePersonal />
-              <UserButton />
-            </div>
-          </SignedIn>
-        </div>
       </div>
     </div>
   )

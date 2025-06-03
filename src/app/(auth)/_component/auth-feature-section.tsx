@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import SignIn from "./sign-in"
-import SignUp from "./sign-up"
-import ForgotPassword from "./forgot-password"
-import { CircleCheckBig, Clock, Users } from "lucide-react"
-import ResetPassword from "./reset-password"
+import { useState } from "react";
+import SignIn from "./sign-in";
+import SignUp from "./sign-up";
+import ForgotPassword from "./forgot-password";
+import { Calendar, CircleCheckBig, Clock, Users } from "lucide-react";
+import ResetPassword from "./reset-password";
 
-type AuthView = "signin" | "signup" | "forgot" | "reset-password"
+type AuthView = "signin" | "signup" | "forgot" | "reset-password";
 
 const Auth = () => {
-  const [currentView, setCurrentView] = useState<AuthView>("signin")
+  const [currentView, setCurrentView] = useState<AuthView>("signin");
 
   const renderAuthComponent = () => {
     switch (currentView) {
@@ -18,159 +18,165 @@ const Auth = () => {
         return (
           <SignIn
             onSwitchToSignUp={() => setCurrentView("signup")}
-            onSwitchToForgot={() => setCurrentView("forgot")}
+            onSwitchToForget={() => setCurrentView("forgot")}
           />
-        )
+        );
       case "signup":
-        return <SignUp onSwitchToSignIn={() => setCurrentView("signin")} />
+        return <SignUp onSwitchToLogin={() => setCurrentView("signin")} />;
       case "forgot":
         return (
           <ForgotPassword
             onBackToLogin={() => setCurrentView("signin")}
             onForwardToReset={() => setCurrentView("reset-password")}
+            onBackToResetPassword={() => setCurrentView("reset-password")}
           />
-        )
+        );
       case "reset-password":
-        return <ResetPassword onBackToLogin={() => setCurrentView("signin")} />
+        return <ResetPassword onBackToLogin={() => setCurrentView("signin")} />;
+      case "forgot":
+        return (
+          <ForgotPassword
+            onBackToLogin={() => setCurrentView("signin")}
+            onForwardToReset={() => setCurrentView("reset-password")}
+            onBackToResetPassword={() => setCurrentView("reset-password")}
+          />
+        );
       default:
         return (
           <SignIn
             onSwitchToSignUp={() => setCurrentView("signup")}
-            onSwitchToForgot={() => setCurrentView("forgot")}
+            onSwitchToForget={() => setCurrentView("forgot")}
           />
-        )
+        );
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex">
       {/* Left Side - Branding (Hidden on mobile) */}
-      <div className="hidden lg:flex lg:w-2/3  flex-col items-start text-white pl-20 p-8 relative overflow-hidden bg-[#edf2ff] ">
+      <div
+        className="hidden lg:flex lg:w-3/5  flex-col items-start justify-center text-white p-12 relative overflow-hidden  "
+        style={{
+          background: "linear-gradient(to bottom right, #f4fafe, #e8eefd)",
+        }}
+      >
         {/* Content */}
-        <div className="relative z-10 text-start top-40 ">
-          <div className="flex flex-col mb-8 gap-1">
-            <div className="flex items-center justify-start ">
-              <div className="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center mr-4 shadow-lg">
-                <svg
-                  className="w-6 h-6 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
+        <div className="relative z-10 text-start  -top-[110px]">
+          <div className="flex flex-col mb-8 gap-2">
+            <div className="flex items-center justify-start h-10">
+              <div className="w-10 h-10 bg-[#0ba6e9] rounded-xl flex items-center justify-center mr-3 ">
+                <Calendar />
               </div>
 
               <h1 className="text-2xl text-black font-bold">Appointege</h1>
             </div>
-            <p className="text-black text-lg">
+            <p className="text-[#485669] text-lg font-medium -tracking-[0.0045rem] leading-7  ">
               Professional Appointment Management
             </p>
           </div>
 
-          <div className="flex flex-col gap-4 mb-8">
-            <div className="flex flex-col space-y-[2px]">
+          <div className="flex flex-col gap-6 mb-6">
+            <div className="flex flex-col">
               <p className="text-start text-4xl text-black font-bold">
                 Streamline Your
               </p>
-              <span className="text-start text-4xl text-blue-500 font-bold">
+              <span className="text-start text-4xl text-[#0ba6e9] font-bold">
                 Appointment Workflow
               </span>
             </div>
-            <div className="text-lg text-black">
+            <div className="text-lg text-[#485768]">
               Transform how you manage appointments with our intuitive platform
               designed for modern professionals.
             </div>
           </div>
 
           {/* Feature highlights */}
-          <div className="space-y-4 text-black font-semibold">
-            <div className="flex items-center text-blue-100 gap-2">
-              <div className="h-6 w-6 bg-blue-500 rounded-md flex justify-center items-center">
+          <div className="space-y-3 text-black font-semibold">
+            <div className="flex items-center text-blue-100 gap-3">
+              <div className="h-7 w-7 bg-[#e0f1fe] rounded-md flex justify-center items-center">
                 <Clock
                   style={{
-                    height: "15px",
-                    width: "15px",
+                    height: "16px",
+                    width: "16px",
+                    color: "#0185c8",
                   }}
                 />
               </div>
-              <span className="text-black text-sm">
+              <span className="text-[#485669] text-sm">
                 Smart scheduling automation
               </span>
             </div>
-            <div className="flex items-center text-blue-100 gap-2">
-              <div className="h-6 w-6 bg-blue-500 rounded-md flex justify-center items-center">
+            <div className="flex items-center text-blue-100 gap-3">
+              <div className="h-7 w-7 bg-[#e0f1fe] rounded-md flex justify-center items-center">
                 <Users
                   style={{
-                    height: "15px",
-                    width: "15px",
+                    height: "16px",
+                    width: "16px",
+                    color: "#0185c8",
                   }}
                 />
               </div>
-              <span className="text-black text-sm">
+              <span className="text-[#485669] text-sm">
                 Seamless client management
               </span>
             </div>
-            <div className="flex items-center text-blue-100 gap-2">
-              <div className="h-6 w-6 bg-blue-500 rounded-md flex justify-center items-center">
+            <div className="flex items-center text-blue-100 gap-3">
+              <div className="h-7 w-7 bg-[#e0f1fe] rounded-md flex justify-center items-center">
                 <CircleCheckBig
                   style={{
-                    height: "15px",
-                    width: "15px",
+                    height: "16px",
+                    width: "16px",
+                    color: "#0185c8",
                   }}
                 />
               </div>
-              <span className="text-black text-sm">
+              <span className="text-[#485669] text-sm">
                 Real time availability sync
               </span>
             </div>
           </div>
         </div>
+        {/* Decorative Calendar Illustration */}
+        <div className="grid grid-cols-7 gap-1 max-w-xs opacity-20">
+          {Array.from({ length: 28 }, (_, i) => (
+            <div
+              key={i}
+              className={`aspect-square rounded ${
+                i % 7 === 0 || i % 7 === 6
+                  ? "bg-slate-200"
+                  : Math.random() > 0.7
+                    ? "bg-sky-300"
+                    : "bg-slate-100"
+              }`}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Right Side - Auth Forms */}
-      <div className="w-full lg:w-1/3 flex items-center justify-center p-4 bg-[#f4f8fe]">
-        <div className="w-full max-w-md">
-          {/* Mobile Logo */}
-          <div className="lg:hidden absolute animate-fade-in top-0 left-0 py-3  bg-[#fefeff] w-full justify-center items-center border-b-1">
-            <div className="flex items-center justify-center mb-2">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center mr-3">
-                <svg
-                  className="w-5 h-5 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <div className="flex flex-col">
-                <h1 className="text-xl font-bold text-gray-800">Appointege</h1>
-                <p className="text-gray-600 text-xs">
-                  Streamline Your Workflow
-                </p>
-              </div>
+      <div className="w-full lg:w-2/5 flex flex-col items-center bg-[#f4f8fe] min-h-screen">
+        {/* Mobile Logo */}
+        <div className="lg:hidden w-full mb-8 shadow-xs bg-[#fefeff]">
+          <div className="flex items-center justify-center py-3 space-x-2">
+            <div className="w-8 h-8 bg-[#0ba6e9] rounded-lg flex items-center text-white justify-center ">
+              <Calendar style={{ height: "20px", width: "20px" }} />
+            </div>
+            <div className="flex flex-col  ">
+              <h1 className="flex justify-center text-xl font-bold text-gray-800 ">
+                Appointege
+              </h1>
+              <p className="text-gray-600 text-xs">Streamline Your Workflow</p>
             </div>
           </div>
+        </div>
 
-          {/* Auth Component with Tailwind animations */}
-          <div key={currentView} className="animate-fade-in">
-            {renderAuthComponent()}
-          </div>
+        {/* Auth Form Container */}
+        <div className="w-full max-w-sm mx-auto my-auto">
+          {renderAuthComponent()}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Auth
+export default Auth;

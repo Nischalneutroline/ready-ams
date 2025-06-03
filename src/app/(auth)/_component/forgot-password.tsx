@@ -1,33 +1,36 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Mail, ArrowLeft } from "lucide-react"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Mail, ArrowLeft, ArrowRight } from "lucide-react";
 
 interface ForgotPasswordProps {
-  onBackToLogin: () => void
-  onForwardToReset: () => void
+  onBackToLogin: () => void;
+  onForwardToReset: () => void;
+  onBackToResetPassword: () => void;
 }
 
 const ForgotPassword = ({
   onBackToLogin,
   onForwardToReset,
+  onBackToResetPassword,
 }: ForgotPasswordProps) => {
-  const [email, setEmail] = useState("")
-  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [email, setEmail] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    console.log("Password reset for:", email)
-    setIsSubmitted(true)
-    onForwardToReset()
-  }
+    e.preventDefault();
+    console.log("Password reset for:", email);
+    setIsSubmitted(true);
+    onForwardToReset();
+    onBackToResetPassword();
+  };
 
   if (isSubmitted) {
     return (
-      <div className="animate-fade-in">
+      <div className="">
         <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0">
           <CardContent className="text-center py-12 px-8">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
@@ -52,11 +55,11 @@ const ForgotPassword = ({
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="animate-slide-in-right">
+    <div className="">
       <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0 transition-all duration-300 hover:shadow-3xl">
         <CardHeader className="text-center pb-6">
           <CardTitle className="text-2xl font-bold text-gray-800">
@@ -90,7 +93,7 @@ const ForgotPassword = ({
             {/* Send Reset Link Button */}
             <Button
               type="submit"
-              className="w-full h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full h-11 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 text-sm"
             >
               Send Reset Link
             </Button>
@@ -99,15 +102,22 @@ const ForgotPassword = ({
           {/* Back to Login Link */}
           <button
             onClick={onBackToLogin}
-            className="w-full flex items-center justify-center text-sm text-blue-600 hover:text-blue-700 font-medium py-2 transition-all duration-200 hover:underline transform hover:scale-[1.02]"
+            className="w-full flex items-center justify-center text-sm text-sky-600 hover:text-sky-700 font-medium py-2 transition-all duration-200 hover:underline transform hover:scale-[1.02]"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Login
           </button>
+          <button
+            onClick={onBackToResetPassword}
+            className="w-full flex items-center justify-center text-sm text-sky-600 hover:text-sky-700 font-medium py-2 transition-all duration-200 hover:underline transform hover:scale-[1.02]"
+          >
+            <ArrowRight className="w-4 h-4 mr-2" />
+            Reset Password
+          </button>
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default ForgotPassword
+export default ForgotPassword;

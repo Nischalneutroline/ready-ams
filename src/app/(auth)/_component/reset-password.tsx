@@ -1,135 +1,230 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Lock, CheckCircle, ArrowLeft } from "lucide-react"
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Eye, EyeOff, Lock, Check, X, ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
 
-interface ResetPasswordProps {
-  onBackToLogin: () => void
+interface ResetPasswordFormProps {
+  onBackToLogin: () => void;
 }
 
-const ResetPassword = ({ onBackToLogin }: ResetPasswordProps) => {
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [error, setError] = useState("")
+const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const getPasswordStrength = (password: string) => {
+    let strength = 0;
+    const checks = {
+      length: password.length >= 8,
+      lowercase: /[a-z]/.test(password),
+      uppercase: /[A-Z]/.test(password),
+      number: /\d/.test(password),
+      special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    };
 
-    if (newPassword !== confirmPassword) {
-      setError("Passwords do not match.")
-      return
+    strength = Object.values(checks).filter(Boolean).length;
+
+    return {
+      strength,
+      checks,
+      label: strength < 2 ? "Weak" : strength < 4 ? "Medium" : "Strong",
+      color:
+        strength < 2
+          ? "bg-red-500"
+          : strength < 4
+            ? "bg-yellow-500"
+            : "bg-green-500",
+    };
+  };
+
+  const passwordStrength = getPasswordStrength(password);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
     }
 
-    setError("")
-    console.log("Password reset successfully:", newPassword)
-    setIsSubmitted(true)
-  }
+    if (passwordStrength.strength < 3) {
+      toast.error("Password is too weak. Please choose a stronger password.");
+      return;
+    }
 
-  if (isSubmitted) {
-    return (
-      <div className="animate-fade-in">
-        <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0">
-          <CardContent className="text-center py-12 px-8">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce">
-              <CheckCircle className="w-8 h-8 text-green-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Password Reset Successful
-            </h2>
-            <p className="text-gray-600 mb-8 leading-relaxed">
-              Your password has been successfully updated. You can now log in
-              with your new password.
-            </p>
-            <Button
-              onClick={onBackToLogin}
-              variant="outline"
-              className="w-full h-12 border-gray-200 hover:bg-gray-50 font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Login
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+    setIsLoading(true);
+
+    // Simulate API call
+    setTimeout(() => {
+      setIsLoading(false);
+      toast.success("Password updated successfully! You can now log in.");
+      console.log("Password reset successful");
+      setTimeout(() => {
+        onBackToLogin();
+      }, 1500);
+    }, 1500);
+  };
 
   return (
-    <div className="animate-slide-in-right">
-      <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0 transition-all duration-300 hover:shadow-3xl">
-        <CardHeader className="text-center pb-6">
-          <CardTitle className="text-2xl font-bold text-gray-800">
-            Create New Password
-          </CardTitle>
-          <p className="text-gray-600 leading-relaxed">
-            Enter and confirm your new password below.
-          </p>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* New Password */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                New Password
-              </label>
-              <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-                <Input
-                  type="password"
-                  placeholder="Enter new password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="pl-10 h-12 border-gray-200 focus:border-blue-400 focus:ring-blue-400 transition-all duration-200"
-                  required
-                />
-              </div>
-            </div>
+    <div className="bg-white rounded-2xl shadow-xl border border-slate-200 p-4 sm:p-8">
+      <div className="text-center mb-6 sm:mb-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">
+          Set New Password
+        </h2>
+        <p className="text-slate-600 text-sm sm:text-base">
+          Create a strong password for your Appointege account
+        </p>
+      </div>
 
-            {/* Confirm Password */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-gray-700">
-                Confirm Password
-              </label>
-              <div className="relative group">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
-                <Input
-                  type="password"
-                  placeholder="Confirm your password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="pl-10 h-12 border-gray-200 focus:border-blue-400 focus:ring-blue-400 transition-all duration-200"
-                  required
-                />
-              </div>
-            </div>
-
-            {error && <p className="text-red-600 text-sm">{error}</p>}
-
-            {/* Reset Password Button */}
-            <Button
-              type="submit"
-              className="w-full h-12 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]"
-            >
-              Reset Password
-            </Button>
-          </form>
-
-          {/* Back to Login */}
-          <button
-            onClick={onBackToLogin}
-            className="w-full flex items-center justify-center text-sm text-blue-600 hover:text-blue-700 font-medium py-2 transition-all duration-200 hover:underline transform hover:scale-[1.02]"
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+        <div className="space-y-2">
+          <Label
+            htmlFor="password"
+            className="text-slate-700 font-medium text-sm"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Login
-          </button>
-        </CardContent>
-      </Card>
-    </div>
-  )
-}
+            New Password
+          </Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 sm:w-5 sm:h-5" />
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="pl-9 sm:pl-10 pr-10 sm:pr-12 h-10 sm:h-12 border-slate-300 focus:border-sky-500 focus:ring-sky-500 rounded-xl text-sm sm:text-base"
+              placeholder="Enter new password"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              {showPassword ? (
+                <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />
+              ) : (
+                <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
+              )}
+            </button>
+          </div>
 
-export default ResetPassword
+          {password && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-600">
+                  Password strength:
+                </span>
+                <span
+                  className={`text-xs font-medium ${
+                    passwordStrength.strength < 2
+                      ? "text-red-600"
+                      : passwordStrength.strength < 4
+                        ? "text-yellow-600"
+                        : "text-green-600"
+                  }`}
+                >
+                  {passwordStrength.label}
+                </span>
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full transition-all duration-300 ${passwordStrength.color}`}
+                  style={{ width: `${(passwordStrength.strength / 5) * 100}%` }}
+                />
+              </div>
+              <div className="space-y-1">
+                {Object.entries(passwordStrength.checks).map(
+                  ([key, passed]) => (
+                    <div
+                      key={key}
+                      className="flex items-center space-x-2 text-xs"
+                    >
+                      {passed ? (
+                        <Check className="w-3 h-3 text-green-500" />
+                      ) : (
+                        <X className="w-3 h-3 text-slate-400" />
+                      )}
+                      <span
+                        className={passed ? "text-green-600" : "text-slate-500"}
+                      >
+                        {key === "length" && "At least 8 characters"}
+                        {key === "lowercase" && "One lowercase letter"}
+                        {key === "uppercase" && "One uppercase letter"}
+                        {key === "number" && "One number"}
+                        {key === "special" && "One special character"}
+                      </span>
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label
+            htmlFor="confirmPassword"
+            className="text-slate-700 font-medium text-sm"
+          >
+            Confirm New Password
+          </Label>
+          <div className="relative">
+            <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 sm:w-5 sm:h-5" />
+            <Input
+              id="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="pl-9 sm:pl-10 pr-10 sm:pr-12 h-10 sm:h-12 border-slate-300 focus:border-sky-500 focus:ring-sky-500 rounded-xl text-sm sm:text-base"
+              placeholder="Confirm new password"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" />
+              ) : (
+                <Eye className="w-4 h-4 sm:w-5 sm:h-5" />
+              )}
+            </button>
+          </div>
+          {confirmPassword && password !== confirmPassword && (
+            <p className="text-red-500 text-xs">Passwords do not match</p>
+          )}
+        </div>
+
+        <Button
+          type="submit"
+          disabled={
+            isLoading ||
+            !password ||
+            !confirmPassword ||
+            password !== confirmPassword
+          }
+          className="w-full h-10 sm:h-12 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:opacity-50 text-sm sm:text-base"
+        >
+          {isLoading ? "Updating Password..." : "Update Password"}
+        </Button>
+      </form>
+
+      <button
+        onClick={onBackToLogin}
+        className="w-full flex items-center justify-center text-sm text-sky-600 hover:text-sky-700 font-medium py-2 transition-all duration-200 hover:underline transform hover:scale-[1.02]"
+      >
+        <ArrowLeft className="w-4 h-4 mr-2" />
+        Back to Login
+      </button>
+    </div>
+  );
+};
+
+export default ResetPasswordForm;
