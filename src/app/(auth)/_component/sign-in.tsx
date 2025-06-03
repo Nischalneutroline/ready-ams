@@ -11,13 +11,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { LogInSchema, LoginType } from "../_schemas/sign-in-schema";
 import { FcGoogle } from "react-icons/fc";
 import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
-interface LoginFormProps {
-  onSwitchToSignUp: () => void;
-  onSwitchToForget?: () => void;
-}
-
-const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
+const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const searchParams = useSearchParams();
@@ -58,11 +54,6 @@ const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
 
   const handleSocialLogin = (provider: string) => {
     console.log(`${provider} login clicked`);
-  };
-
-  const handleForgotPassword = () => {
-    console.log("Forgot password clicked");
-    onSwitchToForget?.();
   };
 
   return (
@@ -149,13 +140,12 @@ const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
               Remember me
             </Label>
           </div>
-          <button
-            type="button"
-            onClick={handleForgotPassword}
+          <Link
+            href="/reset-password"
             className="text-sm text-sky-600 hover:text-sky-700 font-medium transition-colors"
           >
             Forgot password?
-          </button>
+          </Link>
         </div>
 
         <Button
@@ -186,20 +176,19 @@ const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
         onClick={() => handleSocialLogin("Google")}
         className="w-full h-11 border-slate-300 hover:bg-slate-50 rounded-xl transition-all duration-200 hover:scale-[1.02]  flex items-center justify-center gap-2"
       >
-        <FcGoogle className="w-11  h-11" />
+        <FcGoogle />
         Continue with Google
       </Button>
 
       <div className="mt-6 text-center">
         <p className="text-slate-600 text-sm">
           Don't have an account?{" "}
-          <button
-            type="button"
-            onClick={onSwitchToSignUp}
+          <Link
+            href="/sign-up"
             className="text-sky-600 hover:text-sky-700 font-semibold transition-colors"
           >
             Sign up
-          </button>
+          </Link>
         </p>
       </div>
     </div>

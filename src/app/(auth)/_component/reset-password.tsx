@@ -12,12 +12,9 @@ import {
   ResetPasswordSchema,
   ResetPasswordType,
 } from "../_schemas/new-password-schema";
+import Link from "next/link";
 
-interface ResetPasswordFormProps {
-  onBackToLogin: () => void;
-}
-
-const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
+const ResetPasswordForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -226,13 +223,13 @@ const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
         </Button>
       </form>
 
-      <button
-        onClick={onBackToLogin}
+      <Link
+        href="/sign-in"
         className="w-full flex items-center justify-center text-sm text-sky-600 hover:text-sky-700 font-medium py-2 transition-all duration-200 hover:underline transform hover:scale-[1.02]"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Login
-      </button>
+      </Link>
     </div>
   );
 };
