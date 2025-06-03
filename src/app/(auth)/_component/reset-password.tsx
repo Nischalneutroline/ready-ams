@@ -52,6 +52,7 @@ const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
     register,
     handleSubmit,
     watch,
+    reset,
     formState: { errors },
   } = useForm<ResetPasswordType>({
     resolver: zodResolver(ResetPasswordSchema),
@@ -78,6 +79,7 @@ const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
 
     console.log(data);
     setIsLoading(false);
+    reset();
   };
 
   return (

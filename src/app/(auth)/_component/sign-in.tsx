@@ -10,6 +10,7 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LogInSchema, LoginType } from "../_schemas/sign-in-schema";
 import { FcGoogle } from "react-icons/fc";
+import { useSearchParams } from "next/navigation";
 
 interface LoginFormProps {
   onSwitchToSignUp: () => void;
@@ -19,12 +20,20 @@ interface LoginFormProps {
 const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const searchParams = useSearchParams();
+  const urlError =
+    searchParams.get("error") === "OAuthAccountNotLinked"
+      ? "Email already in use with credential provider!"
+      : "";
+
+  const callbackUrl = searchParams.get("callbackUrl");
 
   // react hook form
   const {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<LoginType>({
     resolver: zodResolver(LogInSchema),
@@ -44,6 +53,7 @@ const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
       setIsLoading(false);
       console.log("Login attempted:", data);
     }, 1500);
+    reset();
   };
 
   const handleSocialLogin = (provider: string) => {
@@ -114,6 +124,11 @@ const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
               )}
             </button>
           </div>
+          {errors.password && (
+            <p className="text-red-500 text-xs mt-1">
+              {errors.password.message}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center justify-between">

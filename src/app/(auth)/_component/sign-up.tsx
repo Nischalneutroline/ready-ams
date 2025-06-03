@@ -39,6 +39,7 @@ const SignUpForm = ({ onSwitchToLogin }: SignupFormProps) => {
       return;
     }
     setIsLoading(true);
+    form.reset();
   };
 
   const handleSocialSignup = (provider: string) => {
@@ -60,7 +61,11 @@ const SignUpForm = ({ onSwitchToLogin }: SignupFormProps) => {
         </p>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-4"
+        noValidate
+      >
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-2">
             <Label
