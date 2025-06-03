@@ -82,7 +82,7 @@ const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mb-6">
         <div className="space-y-2">
           <Label
             htmlFor="password"

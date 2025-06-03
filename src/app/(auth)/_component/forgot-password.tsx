@@ -5,6 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Mail, ArrowLeft, ArrowRight } from "lucide-react";
+import {
+  ForgotPasswordSchema,
+  ForgotPasswordType,
+} from "../_schemas/forgot-form-schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 
 interface ForgotPasswordProps {
   onBackToLogin: () => void;
@@ -20,9 +26,17 @@ const ForgotPassword = ({
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Password reset for:", email);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<ForgotPasswordType>({
+    resolver: zodResolver(ForgotPasswordSchema),
+  });
+
+  const onSubmit = async (data: ForgotPasswordType) => {
+    console.log("Password reset for:", data.email);
+    setEmail(data.email);
     setIsSubmitted(true);
     onForwardToReset();
     onBackToResetPassword();
@@ -61,17 +75,17 @@ const ForgotPassword = ({
   return (
     <div className="">
       <Card className="bg-white/95 backdrop-blur-sm shadow-2xl border-0 transition-all duration-300 hover:shadow-3xl">
-        <CardHeader className="text-center pb-6">
+        <CardHeader className="text-center pb-2 ">
           <CardTitle className="text-2xl font-bold text-gray-800">
             Reset Password
           </CardTitle>
-          <p className="text-gray-600 leading-relaxed">
+          <p className="text-gray-600 leading-relaxed text-sm">
             Enter the email associated with your account, and we'll send you a
             password reset link.
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Email Field */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">
@@ -82,8 +96,7 @@ const ForgotPassword = ({
                 <Input
                   type="email"
                   placeholder="Enter your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register("email")}
                   className="pl-10 h-12 border-gray-200 focus:border-blue-400 focus:ring-blue-400 transition-all duration-200"
                   required
                 />
