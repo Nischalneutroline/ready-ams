@@ -6,6 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Eye, EyeOff, Lock, Check, X, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  ResetPasswordSchema,
+  ResetPasswordType,
+} from "../_schemas/new-password-schema";
 
 interface ResetPasswordFormProps {
   onBackToLogin: () => void;
@@ -14,8 +20,7 @@ interface ResetPasswordFormProps {
 const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
+
   const [isLoading, setIsLoading] = useState(false);
 
   const getPasswordStrength = (password: string) => {
@@ -43,12 +48,23 @@ const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
     };
   };
 
-  const passwordStrength = getPasswordStrength(password);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<ResetPasswordType>({
+    resolver: zodResolver(ResetPasswordSchema),
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Watch the password field for strength checking
+  const passwordValue = watch("password");
+  const confirmPasswordValue = watch("confirmPassword");
 
-    if (password !== confirmPassword) {
+  const passwordStrength = getPasswordStrength(passwordValue || "");
+
+  const onSubmit = async (data: ResetPasswordType) => {
+    if (data.password !== data.confirmPassword) {
       toast.error("Passwords do not match");
       return;
     }
@@ -60,15 +76,8 @@ const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
 
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      toast.success("Password updated successfully! You can now log in.");
-      console.log("Password reset successful");
-      setTimeout(() => {
-        onBackToLogin();
-      }, 1500);
-    }, 1500);
+    console.log(data);
+    setIsLoading(false);
   };
 
   return (
@@ -82,7 +91,11 @@ const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mb-6">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="space-y-4 sm:space-y-6 mb-6"
+        noValidate
+      >
         <div className="space-y-2">
           <Label
             htmlFor="password"
@@ -95,8 +108,7 @@ const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              {...register("password")}
               className="pl-9 sm:pl-10 pr-10 sm:pr-12 h-10 sm:h-12 border-slate-300 focus:border-sky-500 focus:ring-sky-500 rounded-xl text-sm sm:text-base"
               placeholder="Enter new password"
               required
@@ -114,7 +126,7 @@ const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
             </button>
           </div>
 
-          {password && (
+          {passwordValue && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-600">
@@ -179,8 +191,7 @@ const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
             <Input
               id="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
+              {...register("confirmPassword")}
               className="pl-9 sm:pl-10 pr-10 sm:pr-12 h-10 sm:h-12 border-slate-300 focus:border-sky-500 focus:ring-sky-500 rounded-xl text-sm sm:text-base"
               placeholder="Confirm new password"
               required
@@ -197,7 +208,7 @@ const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
               )}
             </button>
           </div>
-          {confirmPassword && password !== confirmPassword && (
+          {confirmPasswordValue && passwordValue !== confirmPasswordValue && (
             <p className="text-red-500 text-xs">Passwords do not match</p>
           )}
         </div>
@@ -205,10 +216,7 @@ const ResetPasswordForm = ({ onBackToLogin }: ResetPasswordFormProps) => {
         <Button
           type="submit"
           disabled={
-            isLoading ||
-            !password ||
-            !confirmPassword ||
-            password !== confirmPassword
+            isLoading || !watch("password") || !watch("confirmPassword")
           }
           className="w-full h-10 sm:h-12 bg-sky-500 hover:bg-sky-600 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-[1.02] disabled:scale-100 disabled:opacity-50 text-sm sm:text-base"
         >

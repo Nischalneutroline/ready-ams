@@ -8,7 +8,7 @@ const page = () => {
   return (
     <LoginForm
       onSwitchToSignUp={() => router.push("/sign-up")}
-      onSwitchToForget={() => router.push("/forget-password")}
+      onSwitchToForget={() => router.push("/reset-password")}
     />
   );
 };

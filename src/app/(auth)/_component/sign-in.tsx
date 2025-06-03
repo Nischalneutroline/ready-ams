@@ -18,13 +18,15 @@ interface LoginFormProps {
 
 const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // react hook form
-  const form = useForm<LoginType>({
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginType>({
     resolver: zodResolver(LogInSchema),
     defaultValues: {
       email: "",
@@ -48,10 +50,6 @@ const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
     console.log(`${provider} login clicked`);
   };
 
-  const handleRememberMeChange = (checked: boolean | "indeterminate") => {
-    setRememberMe(checked === true);
-  };
-
   const handleForgotPassword = () => {
     console.log("Forgot password clicked");
     onSwitchToForget?.();
@@ -66,7 +64,7 @@ const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
         </p>
       </div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div className="space-y-2">
           <Label htmlFor="email" className="text-slate-700 font-medium text-sm">
             Email Address
@@ -76,12 +74,15 @@ const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
             <Input
               id="email"
               type="email"
-              {...form.register("email")}
+              {...register("email")}
               className="pl-9 h-11 border-slate-300 focus:border-sky-500 focus:ring-sky-500 rounded-xl text-sm"
               placeholder="Enter your email"
               required
             />
           </div>
+          {errors.email && (
+            <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
+          )}
         </div>
 
         <div className="space-y-2">
@@ -96,7 +97,7 @@ const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
-              {...form.register("password")}
+              {...register("password")}
               className="pl-9 pr-10 h-11 border-slate-300 focus:border-sky-500 focus:ring-sky-500 rounded-xl text-sm"
               placeholder="Enter your password"
               required
@@ -119,7 +120,7 @@ const LoginForm = ({ onSwitchToSignUp, onSwitchToForget }: LoginFormProps) => {
           <div className="flex items-center space-x-2">
             <Controller
               name="rememberMe"
-              control={form.control}
+              control={control}
               render={({ field }) => (
                 <Checkbox
                   id="remember"

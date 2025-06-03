@@ -85,7 +85,11 @@ const ForgotPassword = ({
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6"
+            noValidate
+          >
             {/* Email Field */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-gray-700">
@@ -101,6 +105,11 @@ const ForgotPassword = ({
                   required
                 />
               </div>
+              {errors.email && (
+                <p className="text-red-500 text-xs mt-1">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             {/* Send Reset Link Button */}
