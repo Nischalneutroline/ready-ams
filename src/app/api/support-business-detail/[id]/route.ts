@@ -3,7 +3,7 @@ import { getSupportDetailById } from "@/db/supportDetail"
 import { prisma } from "@/lib/prisma"
 import { ZodError } from "zod"
 import { WeekDays } from "@/features/business-detail/types/types"
-import { SupportBusinessDetailSchema } from "@/app/(admin)/support/_schemas/schema"
+import { SupportBusinessDetailSchema } from "@/app/admin/support/_schemas/schema"
 import { Prisma } from "@prisma/client"
 
 interface ParamsProps {

@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma"
+import { prisma } from "../lib/prisma";
 
 // get service by id
 async function getAppointmentById(id: string) {
@@ -6,7 +6,7 @@ async function getAppointmentById(id: string) {
     where: {
       id,
     },
-  })
+  });
 }
 
-export { getAppointmentById }
+export { getAppointmentById };

@@ -5,7 +5,7 @@ import { getServiceById } from "@/db/service"
 import { prisma } from "@/lib/prisma"
 import { z, ZodError } from "zod"
 import { Service } from "@prisma/client"
-import { serviceSchema } from "@/app/(admin)/service/_schemas/service"
+import { serviceSchema } from "@/app/admin/service/_schemas/service"
 
 interface ParamsProps {
   params: Promise<{ id: string }>

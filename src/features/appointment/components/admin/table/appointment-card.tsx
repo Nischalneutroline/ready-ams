@@ -1,9 +1,10 @@
+import { Service } from "@/app/admin/service/_types/service"
 import { Button } from "@/components/ui/button"
 import { Appointment } from "@/data/structure"
 import { formatLocalDateTime } from "@/features/appointment/action/action"
 import { deleteAppointment } from "@/features/appointment/api/api"
 import { getStatusStyles } from "@/features/appointment/lib/lib"
-import { Customer, deleteCustomer } from "@/features/customer/api/api"
+
 import { getServices } from "@/features/service/api/api"
 import { capitalizeFirstChar, capitalizeOnlyFirstLetter } from "@/utils/utils"
 import {
@@ -41,7 +42,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
   const router = useRouter()
   console.log(appointment, "appointment")
   const serviceName = serviceData.find(
-    (service) => service.id === appointment.serviceId
+    (service: Service) => service.id === appointment.serviceId
   )
   const { bg, dot, text } = getStatusStyles(appointment.status)
   const initials = appointment.customerName
@@ -126,7 +127,7 @@ const AppointmentCard: React.FC<AppointmentCardProps> = ({
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
-                deleteAppointment(appointment)
+                deleteAppointment(appointment.id as string)
               }}
               className="flex gap-2 items-center justify-start"
             >

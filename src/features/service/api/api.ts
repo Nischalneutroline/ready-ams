@@ -3,7 +3,7 @@ import axios, { AxiosError, AxiosResponse } from "axios"
 import {
   ApiReturnType,
   AxiosResponseType,
-} from "@/app/(admin)/service/_types/service"
+} from "@/app/admin/service/_types/service"
 import { Service } from "@prisma/client"
 import { err } from "inngest/types"
 

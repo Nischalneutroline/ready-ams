@@ -4,8 +4,8 @@ import { getAppointmentById } from "@/db/appointment"
 import { prisma } from "@/lib/prisma"
 import { ZodError } from "zod"
 import { updateAppointment } from "@/lib/appointment"
-import { Appointment } from "@/app/(admin)/appointment/_types/appoinment"
-import { appointmentSchema } from "@/app/(admin)/appointment/_schema/appoinment"
+import { Appointment } from "@/app/admin/appointment/_types/appoinment"
+import { appointmentSchema } from "@/app/admin/appointment/_schema/appoinment"
 
 interface ParamsProps {
   params: Promise<{ id: string }>

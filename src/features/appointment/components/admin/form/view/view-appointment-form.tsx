@@ -1,29 +1,27 @@
 // // app/(admin)/appointment-form.tsx
-// "use client"
+// "use client";
 
-// import { useForm, FormProvider } from "react-hook-form"
-// import InputField from "@/components/custom-form-fields/input-field"
-// import SelectField from "@/components/custom-form-fields/select-field"
-// import TextAreaField from "@/components/custom-form-fields/textarea-field"
-// import PhoneInputField from "@/components/custom-form-fields/phone-field"
-// import TimePickerField from "@/components/custom-form-fields/time-field"
-// import { Button } from "@/components/ui/button"
-// import FormHeader from "@/components/admin/form-header"
-// import { useParams, useRouter } from "next/navigation"
-// import DatePickerField from "@/components/custom-form-fields/date-field"
-// import { Mail, SlidersHorizontal, UserPen } from "lucide-react"
-// import { getServices, type Service } from "@/features/service/api/api"
-// import {
-//   getAppointmentById,
-//   type AppointmentData,
-// } from "@/features/appointment/api/api"
-// import { AppointmentStatus } from "@/features/appointment/types/types"
-// import { useEffect, useState } from "react"
-// import { Toaster, toast } from "sonner"
+// import { useForm, FormProvider } from "react-hook-form";
+// import InputField from "@/components/custom-form-fields/input-field";
+// import SelectField from "@/components/custom-form-fields/select-field";
+// import TextAreaField from "@/components/custom-form-fields/textarea-field";
+// import PhoneInputField from "@/components/custom-form-fields/phone-field";
+// import TimePickerField from "@/components/custom-form-fields/time-field";
+// import { Button } from "@/components/ui/button";
+// import FormHeader from "@/components/admin/form-header";
+// import { useParams, useRouter } from "next/navigation";
+// import DatePickerField from "@/components/custom-form-fields/date-field";
+// import { Mail, SlidersHorizontal, UserPen } from "lucide-react";
+// import { getServices } from "@/features/service/api/api";
+
+// import { useEffect, useState } from "react";
+// import { Toaster, toast } from "sonner";
+// import { getAppointmentById } from "@/db/appointment";
+// import { AppointmentStatus, Service } from "@prisma/client";
 
 // interface ServiceOption {
-//   label: string
-//   value: string
+//   label: string;
+//   value: string;
 // }
 
 // const statusOptions = [
@@ -32,7 +30,7 @@
 //   { label: "Missed", value: AppointmentStatus.MISSED },
 //   { label: "Cancelled", value: AppointmentStatus.CANCELLED },
 //   { label: "Follow Up", value: AppointmentStatus.FOLLOW_UP },
-// ]
+// ];
 
 // const availableTimeSlots = [
 //   "09:00 AM",
@@ -44,57 +42,57 @@
 //   "03:00 PM",
 //   "04:00 PM",
 //   "05:00 PM",
-// ]
+// ];
 
 // function convertToISODateTime(date: Date, time: string) {
 //   // Create a new date object from the selected date
-//   const selectedDate = new Date(date)
+//   const selectedDate = new Date(date);
 
 //   // Parse the time string (e.g., "02:00 PM")
-//   const [timeStr, meridiem] = time.split(" ")
-//   const [hours, minutes] = timeStr.split(":")
+//   const [timeStr, meridiem] = time.split(" ");
+//   const [hours, minutes] = timeStr.split(":");
 
 //   // Convert to 24-hour format
-//   let hour = parseInt(hours)
+//   let hour = parseInt(hours);
 //   if (meridiem === "PM" && hour !== 12) {
-//     hour += 12
+//     hour += 12;
 //   } else if (meridiem === "AM" && hour === 12) {
-//     hour = 0
+//     hour = 0;
 //   }
 
 //   // Set the time components on the selected date
-//   selectedDate.setHours(hour)
-//   selectedDate.setMinutes(parseInt(minutes))
-//   selectedDate.setSeconds(0)
-//   selectedDate.setMilliseconds(0)
+//   selectedDate.setHours(hour);
+//   selectedDate.setMinutes(parseInt(minutes));
+//   selectedDate.setSeconds(0);
+//   selectedDate.setMilliseconds(0);
 
 //   // Return ISO string
-//   return selectedDate.toISOString()
+//   return selectedDate.toISOString();
 // }
 
 // // Example usage
 // const formData = {
 //   date: "2025-04-26", // Date in YYYY-MM-DD format
 //   time: "12:00 PM", // Time in 12-hour format (12-hour clock with AM/PM)
-// }
+// };
 
 // export default function ViewAppointmentForm() {
-//   const router = useRouter()
-//   const params = useParams()
-//   const id = params.id as string
-//   const [serviceOptions, setServiceOptions] = useState<ServiceOption[]>([])
-//   const [isLoading, setIsLoading] = useState(true)
+//   const router = useRouter();
+//   const params = useParams();
+//   const id = params.id as string;
+//   const [serviceOptions, setServiceOptions] = useState<ServiceOption[]>([]);
+//   const [isLoading, setIsLoading] = useState(true);
 
 //   interface FormValues {
-//     firstName: string
-//     lastName: string
-//     email: string
-//     phone: string
-//     service: string
-//     date: Date | null
-//     time: string
-//     message: string
-//     status: AppointmentStatus
+//     firstName: string;
+//     lastName: string;
+//     email: string;
+//     phone: string;
+//     service: string;
+//     date: Date | null;
+//     time: string;
+//     message: string;
+//     status: AppointmentStatus;
 //   }
 
 //   const form = useForm<FormValues>({
@@ -109,68 +107,74 @@
 //       message: "",
 //       status: AppointmentStatus.SCHEDULED,
 //     },
-//   })
+//   });
 
 //   useEffect(() => {
 //     const fetchData = async () => {
 //       try {
 //         // Fetch services
-//         const services = await getServices()
-//         const options = services.map((service: Service) => ({
-//           label: service.title,
-//           value: service.id,
-//         }))
-//         setServiceOptions(options)
+//         const servicesResponse = await getServices();
+//         if (servicesResponse.success && servicesResponse.data) {
+//           const options = servicesResponse.data.map((service: Service) => ({
+//             label: service.title,
+//             value: service.id,
+//           }));
+//           setServiceOptions(options);
+//         } else {
+//           console.error("Failed to fetch services:", servicesResponse.message);
+//           toast.error(servicesResponse.message || "Failed to load services");
+//         }
 
 //         // Fetch appointment if ID exists
 //         if (id) {
-//           const appointment = await getAppointmentById(id)
-//           if (appointment) {
-//             const [firstName, lastName] = appointment.customerName.split(" ")
-//             const date = new Date(appointment.selectedDate)
-//             const timeDate = new Date(appointment.selectedTime)
-//             console.log("Original selectedTime:", appointment.selectedTime)
+//           const appointmentResponse = await getAppointmentById(id);
+//           if (appointmentResponse) {
+//             const appointment = appointmentResponse;
+//             const [firstName, lastName] = appointment.customerName.split(" ");
+//             const date = new Date(appointment.selectedDate);
+//             const timeDate = new Date(appointment.selectedTime);
+//             console.log("Original selectedTime:", appointment.selectedTime);
 
 //             // Get hours and minutes
-//             let hours = timeDate.getHours()
-//             const minutes = timeDate.getMinutes()
-//             const meridiem = hours >= 12 ? "PM" : "AM"
+//             let hours = timeDate.getHours();
+//             const minutes = timeDate.getMinutes();
+//             const meridiem = hours >= 12 ? "PM" : "AM";
 
 //             // Convert to 12-hour format
-//             hours = hours % 12
-//             hours = hours ? hours : 12 // Convert 0 to 12
+//             hours = hours % 12;
+//             hours = hours ? hours : 12; // Convert 0 to 12
 
 //             // Format with leading zeros
-//             const time = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")} ${meridiem}`
-//             console.log("Available time slots:", availableTimeSlots)
-//             console.log("Formatted time for form:", time)
+//             const time = `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")} ${meridiem}`;
+//             console.log("Available time slots:", availableTimeSlots);
+//             console.log("Formatted time for form:", time);
 //             form.reset({
 //               firstName,
 //               lastName,
 //               email: appointment.email,
 //               phone: appointment.phone,
-//               service: appointment.service?.id,
+//               service: appointment.serviceId,
 //               date: date,
 //               time: time,
 //               message: appointment.message || "",
 //               status: appointment.status || AppointmentStatus.SCHEDULED,
-//             })
+//             });
 //           }
 //         }
 //       } catch (error) {
-//         console.error("Error fetching data:", error)
-//         toast.error("Failed to load appointment data")
+//         console.error("Error fetching data:", error);
+//         toast.error("Failed to load appointment data");
 //       } finally {
-//         setIsLoading(false)
+//         setIsLoading(false);
 //       }
-//     }
+//     };
 
-//     fetchData()
-//   }, [id, form])
+//     fetchData();
+//   }, [id, form]);
 
 //   const handleBack = () => {
-//     router.push("/appointment")
-//   }
+//     router.push("/appointment");
+//   };
 
 //   return (
 //     <>
@@ -262,5 +266,5 @@
 //         </form>
 //       </FormProvider>
 //     </>
-//   )
+//   );
 // }

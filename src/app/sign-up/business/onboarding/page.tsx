@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
-import { Progress } from "@/components/ui/progress"
+// import { Progress } from "@/components/ui/progress"
 import { motion, AnimatePresence } from "framer-motion"
 import { ChevronLeft, ChevronRight, Check } from "lucide-react"
 import { toast } from "sonner"
@@ -18,7 +18,6 @@ import { useBusinessStore } from "@/app/(admin)/business-settings/_store/busines
 import { useOrganizationList, useUser } from "@clerk/nextjs"
 import { createBusiness } from "@/app/(admin)/business-settings/_api-call/business-api-call"
 import { useRouter } from "next/navigation"
-import { clerkClient } from "@clerk/nextjs/server"
 
 type FormValues = {
   name: string
@@ -91,11 +90,10 @@ const steps = [
   },
 ]
 
-export default async function BusinessOnboarding() {
+export default function BusinessOnboarding() {
   const [currentStep, setCurrentStep] = useState(1)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const { setBusinessData, setActiveTab } = useBusinessStore()
-  const client = await clerkClient()
   const { user } = useUser()
   const router = useRouter()
 
@@ -211,11 +209,11 @@ export default async function BusinessOnboarding() {
       const response = await createBusiness(organizationData)
 
       console.log("Organization created:", response)
-      await client.users.updateUser(user.id, {
-        publicMetadata: {
-          role: "ADMIN",
-        },
-      })
+      // await client.users.updateUser(user.id, {
+      //   publicMetadata: {
+      //     role: "ADMIN",
+      //   },
+      // })
       if (response) {
         router.push("/business-settings")
       }

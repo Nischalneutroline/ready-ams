@@ -1,7 +1,7 @@
 import {
   getBusinessById,
   getBusinesses,
-} from "../../../app/(admin)/business-settings/_api-call/business-api-call"
+} from "../../../app/admin/business-settings/_api-call/business-api-call"
 
 // Set business detail dynamically
 

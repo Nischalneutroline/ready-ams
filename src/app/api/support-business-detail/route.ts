@@ -12,7 +12,7 @@ import {
   getSupportDetailByEmail,
   getSupportDetailById,
 } from "@/db/supportDetail"
-import { SupportBusinessDetailSchema } from "@/app/(admin)/support/_schemas/schema"
+import { SupportBusinessDetailSchema } from "@/app/admin/support/_schemas/schema"
 import { Prisma } from "@prisma/client"
 
 // Dummy database for support business details

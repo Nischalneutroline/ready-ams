@@ -245,7 +245,7 @@ import {
   CheckCircle,
 } from "lucide-react"
 import FileUploadField from "@/components/custom-form-fields/image-upload"
-import { useSupportTabsStore } from "@/app/(admin)/support/_store/support-store"
+import { useSupportTabsStore } from "@/app/admin/support/_store/support-store"
 
 const schema = z.object({
   fullName: z.string().min(1, "Full name is required"),

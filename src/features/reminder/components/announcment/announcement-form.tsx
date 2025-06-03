@@ -214,7 +214,7 @@ import {
 import { transformFormToPayload } from "@/features/announcement-offer/action/action"
 import { transformAnnouncementData } from "@/features/reminder/action/action"
 import { toast } from "sonner"
-import { useNotificationStore } from "@/app/(admin)/reminders/_store/reminder-store"
+import { useNotificationStore } from "@/app/admin/reminders/_store/reminder-store"
 
 const targetAudienceOptions = ["All", "Appointments Users", "Cancelled Users"]
 const showOnOptions = ["Top Banner", "Push Notification", "Email", "All"]

@@ -1,4 +1,4 @@
-import { SupportBusinessDetail } from "@/app/(admin)/support/_types/types"
+import { PostSupportBusinessDetail } from "@/app/admin/support/_types/types"
 
 // Enum for Business Status
 export enum BusinessStatus {
@@ -81,5 +81,7 @@ export interface BusinessDetail {
   address: BusinessAddress[] // Addresses for the business branches
   businessAvailability: BusinessAvailability[] // General availability for the business
   holiday: Holiday[] // General holidays for the business
-  supportBusinessDetail?: SupportBusinessDetail // Optional support business details
+
+// Here post service is used fixewd it with serviceBusinessdetail and another postservicebusinessdetail
+  supportBusinessDetail?: PostSupportBusinessDetail // Optional support business details
 }

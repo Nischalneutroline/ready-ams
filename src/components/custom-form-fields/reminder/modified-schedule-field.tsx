@@ -196,14 +196,14 @@ const ScheduleField = ({
             ) : (
               <div className="flex flex-wrap gap-4 items-center">
                 <SelectField
-                  name={dayFieldName}
+                  name={dayFieldName as string}
                   label="Days"
                   placeholder="Select Days"
                   icon={CalendarIcon}
                   options={dayOptions}
                 />
                 <SelectField
-                  name={hourFieldName}
+                  name={hourFieldName as string}
                   label="Hours"
                   className="w-[125px] h-[32px]"
                   placeholder="Select Hours"
@@ -211,7 +211,7 @@ const ScheduleField = ({
                   options={hourOptions}
                 />
                 <SelectField
-                  name={minuteFieldName}
+                  name={minuteFieldName as string}
                   label="Minutes"
                   className="w-[139px] h-[32px]"
                   placeholder="Select Minutes"

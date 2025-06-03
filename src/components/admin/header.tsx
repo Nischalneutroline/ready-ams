@@ -1,10 +1,10 @@
-"use client";
-import { Bell, Menu, Sidebar } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useState } from "react";
-import SidebarMobile from "./sidebar-mobile";
-import { useNavStore } from "@/state/store";
+"use client"
+import { Bell, Menu, Sidebar } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useState } from "react"
+import SidebarMobile from "./sidebar-mobile"
+import { useNavStore } from "@/state/store"
 import {
   OrganizationSwitcher,
   SignedIn,
@@ -12,11 +12,10 @@ import {
   SignInButton,
   SignUpButton,
   UserButton,
-} from "@clerk/nextjs";
-import { Organization } from "@clerk/nextjs/server";
+} from "@clerk/nextjs"
 
 const Header = () => {
-  const { onOpen } = useNavStore();
+  const { onOpen } = useNavStore()
 
   return (
     <div className="flex items-center gap-4 w-full ">
@@ -46,7 +45,7 @@ const Header = () => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header

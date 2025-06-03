@@ -1,6 +1,7 @@
+import { User } from "@/app/admin/customer/_types/customer"
 import { Button } from "@/components/ui/button"
 
-import { Customer, deleteCustomer } from "@/features/customer/api/api"
+import { deleteCustomer } from "@/features/customer/api/api"
 import {
   getActiveStatusStyles,
   getRoleStyles,
@@ -29,7 +30,7 @@ import router from "next/router"
 import React from "react"
 
 type ClientCardProps = {
-  customer: Customer
+  customer: User
 }
 
 const CustomerCard: React.FC<ClientCardProps> = ({
@@ -124,7 +125,7 @@ const CustomerCard: React.FC<ClientCardProps> = ({
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
-                deleteCustomer(customer)
+                deleteCustomer(customer.id)
               }}
               className="flex gap-2 items-center justify-start"
             >

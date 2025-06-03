@@ -4,8 +4,8 @@ import { ZodError } from "zod"
 import { prisma } from "@/lib/prisma"
 import { getAppointmentById } from "@/db/appointment"
 import { createAppointment } from "@/lib/appointment"
-import { Appointment } from "@/app/(admin)/appointment/_types/appoinment"
-import { appointmentSchema } from "@/app/(admin)/appointment/_schema/appoinment"
+import { Appointment } from "@/app/admin/appointment/_types/appoinment"
+import { appointmentSchema } from "@/app/admin/appointment/_schema/appoinment"
 
 //create new appointment
 export async function POST(req: NextRequest) {

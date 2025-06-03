@@ -6,9 +6,9 @@ import { prisma } from "@/lib/prisma"
 import { Prisma } from "@prisma/client"
 import * as bcrypt from "bcryptjs"
 import { z } from "zod"
-import { userSchema } from "@/app/(admin)/customer/_schema/customer"
-import { createClerkClient, Organization } from "@clerk/nextjs/server"
-import SuperAdmin from "../../../superadmin/page"
+import { userSchema } from "@/app/admin/customer/_schema/customer"
+import { createClerkClient  } from "@clerk/nextjs/server"
+
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY!,
@@ -193,7 +193,7 @@ export async function PUT(req: NextRequest, { params }: ParamsProps) {
     const { id } = await params
     const body = await req.json()
     const parsedData = userSchema.parse(body)
-
+    console.log(parsedData, "parsedData in the clerk")
     const { password, email, name, phone, address, role, orgId } = parsedData
 
     const existingUser = await getUserById(id)
@@ -253,7 +253,15 @@ export async function PUT(req: NextRequest, { params }: ParamsProps) {
         USER: "org:customer",
       }
 
+      // const reverseRoleMapping: Record<string, string> = Object.fromEntries(
+      //   Object.entries(roleMapping).map(([key, value]) => [value, key])
+      // )
+
       const clerkRole = roleMapping[role]
+
+      console.log(role, "role form the frontendi")
+
+      console.log(clerkRole, "role based on the clerk")
 
       if (!clerkRole) {
         return NextResponse.json(
@@ -280,6 +288,12 @@ export async function PUT(req: NextRequest, { params }: ParamsProps) {
           userId: existingUser.id,
           role: clerkRole, // use mapped role here
         })
+        await clerkClient.users.updateUser(existingUser.id, {
+          publicMetadata: {
+            orgId: orgId,
+            role: role,
+          },
+        })
       }
     }
 
@@ -296,7 +310,7 @@ export async function PUT(req: NextRequest, { params }: ParamsProps) {
           zipCode: address.zipCode,
         },
       },
-      role,
+      role: role,
       organizationID: orgId,
     }
 

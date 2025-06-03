@@ -11,7 +11,7 @@ import DataTableSkeleton from "@/components/table/skeleton-table"
 import AnnouncementCard from "../announcment/announcement-card"
 import { announcementColumns } from "../announcment/columns"
 import TableFilterTabs1 from "../announcment/table-filter-tabs"
-import { useNotificationStore } from "@/app/(admin)/reminders/_store/reminder-store"
+import { useNotificationStore } from "@/app/admin/reminders/_store/reminder-store"
 import PageTabs from "@/components/table/page-tabs"
 
 const announcementFilterOptions = ["Sent", "Scheduled", "Expired", "All"]

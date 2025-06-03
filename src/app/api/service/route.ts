@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { ZodError } from "zod"
 import { prisma } from "@/lib/prisma"
 import { getServiceById } from "@/db/service"
-import { Service } from "@/app/(admin)/service/_types/service"
-import { serviceSchema } from "@/app/(admin)/service/_schemas/service"
+import { Service } from "@/app/admin/service/_types/service"
+import { serviceSchema } from "@/app/admin/service/_schemas/service"
 import { Prisma } from "@prisma/client"
 
 export async function POST(req: NextRequest) {

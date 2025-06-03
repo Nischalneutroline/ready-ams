@@ -1,6 +1,6 @@
 "use client"
 
-import { TabMapKey } from "@/app/(admin)/support/_store/support-store"
+import { TabMapKey } from "@/app/admin/support/_store/support-store"
 // import { TabMapKey } from "@/app/(admin)/support/page"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 import { cn } from "@/lib/utils"

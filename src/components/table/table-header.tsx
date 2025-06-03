@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useServiceStore } from "@/app/(admin)/service/_store/service-store"
-import { Button } from "@/components/ui/button"
-import { Plus } from "lucide-react"
-import { useRouter } from "next/navigation"
-import { useEffect, useState, useCallback } from "react"
-import LoadingSpinner from "../loading-spinner"
+import { useServiceStore } from "@/app/admin/service/_store/service-store";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
+import LoadingSpinner from "../loading-spinner";
 
 interface TablePageHeaderProps {
-  title: string
-  description: string
-  newButton?: string
-  route?: string
+  title: string;
+  description: string;
+  newButton?: string;
+  route?: string;
 }
 
 export default function TablePageHeader({
@@ -20,26 +20,26 @@ export default function TablePageHeader({
   newButton,
   route,
 }: TablePageHeaderProps) {
-  const router = useRouter()
-  const { fetchServices } = useServiceStore()
-  const [isNavigating, setIsNavigating] = useState(false)
+  const router = useRouter();
+  const { fetchServices } = useServiceStore();
+  const [isNavigating, setIsNavigating] = useState(false);
 
   // Prefetch route and fetch services on mount
   useEffect(() => {
     if (route) {
-      router.prefetch(route)
+      router.prefetch(route);
     }
-    fetchServices()
-  }, [router, route, fetchServices])
+    fetchServices();
+  }, [router, route, fetchServices]);
 
   const handleClick = useCallback(() => {
     if (route) {
-      setIsNavigating(true)
-      router.push(route)
+      setIsNavigating(true);
+      router.push(route);
       // Reset navigating state after a short delay to allow transition
-      setTimeout(() => setIsNavigating(false), 500)
+      setTimeout(() => setIsNavigating(false), 500);
     }
-  }, [route, router])
+  }, [route, router]);
 
   return (
     <div className="flex flex-col md:flex-row flex-1 w-full justify-between gap-2 md:gap-0">
@@ -76,5 +76,5 @@ export default function TablePageHeader({
         </div>
       )}
     </div>
-  )
+  );
 }

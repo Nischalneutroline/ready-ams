@@ -5,11 +5,11 @@ import { prisma } from "@/lib/prisma"
 import { getUserByEmail, getUserById } from "@/db/user"
 import * as bcrypt from "bcryptjs"
 import { Prisma } from "@prisma/client"
-import { User } from "@/app/(admin)/customer/_types/customer"
-import { userSchema } from "@/app/(admin)/customer/_schema/customer"
-import { Organization, auth, clerkClient } from "@clerk/nextjs/server"
+import { User } from "@/app/admin/customer/_types/customer"
+import { userSchema } from "@/app/admin/customer/_schema/customer"
+import { Organization, auth, clerkClient, getAuth } from "@clerk/nextjs/server"
 import Error from "next/error"
-import { Address } from "../../(admin)/customer/_types/customer"
+import { Address } from "../../admin/customer/_types/customer"
 import { Phone } from "lucide-react"
 
 // Enum for all the roles available in the organization
@@ -22,7 +22,7 @@ const roleMapping = {
 // Handles POST request for creating a user or inviting one to an organization
 export async function POST(req: NextRequest) {
   const client = await clerkClient()
-
+  const { userId } = getAuth(req)
   try {
     // Parse and validate request body using Zod schema
     const body = (await req.json()) as any
@@ -124,6 +124,7 @@ export async function POST(req: NextRequest) {
           emailAddress: email,
           organizationId: orgId,
           role: clerkRole,
+          // inviterUserId: userId as string,
         })
 
         return NextResponse.json(

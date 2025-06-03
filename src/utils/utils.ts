@@ -1,5 +1,6 @@
 import { format, parseISO } from "date-fns"
 
+
 export function capitalizeFirstChar(word: string) {
   if (word.length === 0) return word
   return word.charAt(0).toUpperCase() + word.slice(1)
@@ -17,6 +18,7 @@ export const getFormErrorMsg = (errors: any, inputName: string) => {
 
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { Role } from "@/app/(admin)/customer/_types/customer"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -164,3 +166,4 @@ export function normalDateToIso(date: Date): string {
     return ""
   }
 }
+

@@ -1,7 +1,7 @@
 import {
   NotificationMethod,
   ReminderType,
-} from "@/app/(admin)/appointment/_types/appoinment"
+} from "@/app/admin/appointment/_types/appoinment"
 import { z } from "zod"
 
 //appointmentreminder offset

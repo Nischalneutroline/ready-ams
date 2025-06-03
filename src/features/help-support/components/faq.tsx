@@ -21,7 +21,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
-import { useSupportTabsStore } from "@/app/(admin)/support/_store/support-store"
+import { useSupportTabsStore } from "@/app/admin/support/_store/support-store"
 
 const FAQSection = () => {
   const {

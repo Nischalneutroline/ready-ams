@@ -11,7 +11,7 @@ import TablePageHeader from "@/components/shared/table/table-page-header"
 import DataTableSkeleton from "@/components/table/skeleton-table"
 import ReminderCard from "./reminder-card"
 import { reminderColumns } from "@/features/reminder/components/reminder/columns"
-import { useNotificationStore } from "@/app/(admin)/reminders/_store/reminder-store"
+import { useNotificationStore } from "@/app/admin/reminders/_store/reminder-store"
 import { DataTable } from "@/components/table/data-table"
 
 const reminderTabs = [

@@ -148,7 +148,10 @@ const CustomerTicketPage = () => {
         searchFieldName="category"
       />
       {editTicket && (
-        <TicketEditModal ticket={editTicket} onClose={handleModalClose} />
+        <TicketEditModal
+          ticket={editTicket as Ticket}
+          onClose={handleModalClose}
+        />
       )}
     </div>
   )

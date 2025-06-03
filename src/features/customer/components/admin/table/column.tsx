@@ -22,7 +22,7 @@ import {
 import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 import { DataTableColumnHeader } from "@/components/shared/table/data-table-column-header"
-import { Customer, deleteCustomer } from "@/features/customer/api/api"
+import { deleteCustomer } from "@/features/customer/api/api"
 import {
   capitalizeFirstChar,
   capitalizeOnlyFirstLetter,
@@ -31,11 +31,12 @@ import {
   getActiveStatusStyles,
   getRoleStyles,
 } from "@/features/customer/lib/lib"
+import { User } from "@/app/admin/customer/_types/customer"
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
 
-export const columns: ColumnDef<Customer>[] = [
+export const columns: ColumnDef<User>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -143,7 +144,7 @@ export const columns: ColumnDef<Customer>[] = [
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
-                deleteCustomer(row.original)
+                deleteCustomer(row.original.id)
               }}
               className="flex gap-2 items-center justify-start"
             >

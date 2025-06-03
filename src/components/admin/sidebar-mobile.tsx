@@ -25,17 +25,17 @@ const SidebarMobile = () => {
   const router = useRouter()
 
   const navLinks = [
-    { name: "Dashboard", path: "/", icon: <House /> },
-    { name: "Appointment", path: "/appointment", icon: <CalendarDays /> },
-    { name: "Customer", path: "/customer", icon: <Users /> },
-    { name: "Service", path: "/service", icon: <HandPlatter /> },
+    { name: "Dashboard", path: "/admin/", icon: <House /> },
+    { name: "Appointment", path: "/admin/appointment", icon: <CalendarDays /> },
+    { name: "Customer", path: "/admin/customer", icon: <Users /> },
+    { name: "Service", path: "/admin/service", icon: <HandPlatter /> },
     {
       name: "Business Settings",
-      path: "/business-settings",
+      path: "/admin/business-settings",
       icon: <Settings />,
     },
-    { name: "Reminders", path: "/reminders", icon: <Bell /> },
-    { name: "Support", path: "/support", icon: <Headset /> },
+    { name: "Reminders", path: "/admin/reminders", icon: <Bell /> },
+    { name: "Support", path: "/admin/support", icon: <Headset /> },
   ]
 
   // handle click on nav link and route to that page

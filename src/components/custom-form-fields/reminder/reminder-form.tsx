@@ -1,17 +1,17 @@
-"use client"
+"use client";
 
-import { useForm, FormProvider } from "react-hook-form"
-import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import InputField from "@/components/custom-form-fields/input-field"
-import TextAreaField from "@/components/custom-form-fields/textarea-field"
-import ReminderSelectField from "./select-field"
-import CheckboxGroupField from "./checbox-group-field"
-import RadioGroupField from "./radio-group-field"
+import { useForm, FormProvider } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import InputField from "@/components/custom-form-fields/input-field";
+import TextAreaField from "@/components/custom-form-fields/textarea-field";
+import ReminderSelectField from "./select-field";
+import CheckboxGroupField from "./checbox-group-field";
+import RadioGroupField from "./radio-group-field";
 import {
   AudioWaveform,
   BetweenHorizonalStart,
@@ -19,16 +19,16 @@ import {
   Send,
   SlidersHorizontal,
   Trash2,
-} from "lucide-react"
-import { useServiceStore } from "@/app/(admin)/service/_store/service-store"
-import ScheduleField from "./modified-schedule-field"
+} from "lucide-react";
+import { useServiceStore } from "@/app/admin/service/_store/service-store";
+import ScheduleField from "./modified-schedule-field";
 import {
   createReminder,
   getReminderById,
   updateReminder,
-} from "@/features/reminder/api/api"
-import dayjs from "dayjs"
-import { set } from "lodash"
+} from "@/features/reminder/api/api";
+import dayjs from "dayjs";
+import { set } from "lodash";
 
 // Define reminder types for frontend
 const reminderTypes = [
@@ -37,7 +37,7 @@ const reminderTypes = [
   "Cancellation",
   "Missed",
   "Custom",
-]
+];
 
 // Map frontend reminder types to backend ReminderType enum
 const frontendToBackendType: Record<string, string> = {
@@ -46,7 +46,7 @@ const frontendToBackendType: Record<string, string> = {
   Cancellation: "CANCELLATION",
   Missed: "MISSED",
   Custom: "CUSTOM",
-}
+};
 
 // Map backend ReminderType enum to frontend reminder types
 const backendToFrontendType: Record<string, string> = {
@@ -55,7 +55,7 @@ const backendToFrontendType: Record<string, string> = {
   CANCELLATION: "Cancellation",
   MISSED: "Missed",
   CUSTOM: "Custom",
-}
+};
 
 // Define when options for each reminder type
 const whenOptions: Record<string, string[]> = {
@@ -82,7 +82,7 @@ const whenOptions: Record<string, string[]> = {
     "48 hours after cancellation",
   ],
   Custom: [],
-}
+};
 
 // Define schedule labels for each reminder type
 const scheduleLabels = {
@@ -91,11 +91,11 @@ const scheduleLabels = {
   Missed: "Schedule follow-up",
   Cancellation: "Schedule follow-up",
   Custom: "Schedule reminder",
-}
+};
 
 // Define send via and auto-delete options
-const sendViaOptions = ["Email", "SMS", "Push Notification"]
-const autoDeleteOptions = ["7 days", "30 days", "Never"]
+const sendViaOptions = ["Email", "SMS", "Push Notification"];
+const autoDeleteOptions = ["7 days", "30 days", "Never"];
 
 // Default messages for each reminder type
 const defaultMessages: Record<string, string> = {
@@ -109,102 +109,102 @@ const defaultMessages: Record<string, string> = {
     "Your appointment on {selected_appointment_date} was cancelled. Let us know if you'd like to rebook.",
   Custom: "Custom reminder for your appointment. Please check your schedule.",
   Default: "Reminder for your appointment. Please check your schedule.",
-}
+};
 
 // Convert when option to minutes
 const getOffsetFromWhen = (option: string): number => {
-  const match = option.match(/^(\d+)\s*(minute|hour|day)s?/i)
+  const match = option.match(/^(\d+)\s*(minute|hour|day)s?/i);
   if (!match) {
-    return option === "Same day after appointment" ? 0 : 0
+    return option === "Same day after appointment" ? 0 : 0;
   }
-  const [_, value, unit] = match
-  const numValue = parseInt(value)
+  const [_, value, unit] = match;
+  const numValue = parseInt(value);
   switch (unit.toLowerCase()) {
     case "minute":
-      return numValue
+      return numValue;
     case "hour":
-      return numValue * 60
+      return numValue * 60;
     case "day":
-      return numValue * 24 * 60
+      return numValue * 24 * 60;
     default:
-      return 0
+      return 0;
   }
-}
+};
 
 // Convert offset to when option
 const getWhenFromOffset = (offset: number, type: string): string | null => {
-  const options = whenOptions[type] || []
+  const options = whenOptions[type] || [];
   for (const option of options) {
     if (getOffsetFromWhen(option) === offset) {
-      return option
+      return option;
     }
   }
-  return null
-}
+  return null;
+};
 
 // Convert offset to days, hours, minutes
 const offsetToSchedule = (offset: number) => {
-  const days = Math.floor(offset / (24 * 60))
-  offset %= 24 * 60
-  const hours = Math.floor(offset / 60)
-  const minutes = offset % 60
+  const days = Math.floor(offset / (24 * 60));
+  offset %= 24 * 60;
+  const hours = Math.floor(offset / 60);
+  const minutes = offset % 60;
   return {
     scheduleDays: days > 0 ? days.toString() : "",
     scheduleHours: hours > 0 ? hours.toString() : "",
     scheduleMinutes: minutes > 0 ? minutes.toString() : "",
-  }
-}
+  };
+};
 
 interface FormData {
-  type: string
-  subject: string
-  description: string
-  message: string
-  service: string
-  when: string[]
-  isScheduled: boolean
-  scheduleDays: string
-  scheduleHours: string
-  scheduleMinutes: string
-  scheduleDate: string | null
-  scheduleTime: string
-  notifications: string[]
-  autoDelete: string
+  type: string;
+  subject: string;
+  description: string;
+  message: string;
+  service: string;
+  when: string[];
+  isScheduled: boolean;
+  scheduleDays: string;
+  scheduleHours: string;
+  scheduleMinutes: string;
+  scheduleDate: string | null;
+  scheduleTime: string;
+  notifications: string[];
+  autoDelete: string;
 }
 
 interface Service {
-  id: string
-  title: string
-  description: string
-  createdAt: string
-  status: string
-  estimatedDuration: number
-  updatedAt: string
-  businessDetailId: string | null
+  id: string;
+  title: string;
+  description: string;
+  createdAt: string;
+  status: string;
+  estimatedDuration: number;
+  updatedAt: string;
+  businessDetailId: string | null;
 }
 
 interface TransformedData {
-  id?: string
-  type: string
-  title: string
-  description?: string
-  message?: string
-  services: string[]
-  notifications: { method: string }[]
+  id?: string;
+  type: string;
+  title: string;
+  description?: string;
+  message?: string;
+  services: string[];
+  notifications: { method: string }[];
   reminderOffset: Array<{
-    sendOffset?: number
-    scheduledAt?: string
-    sendBefore: boolean
-  }>
+    sendOffset?: number;
+    scheduledAt?: string;
+    sendBefore: boolean;
+  }>;
 }
 
 const transformData = (data: FormData): TransformedData => {
-  const isBefore = data.type === "Upcoming" || data.type === "Custom"
+  const isBefore = data.type === "Upcoming" || data.type === "Custom";
   const reminderOffset: Array<{
-    sendOffset?: number
-    scheduledAt?: string
-    sendBefore: boolean
-  }> = []
+    sendOffset?: number;
+    scheduledAt?: string;
+    sendBefore: boolean;
+  }> = [];
 
   if (data.type !== "Custom") {
     const whenOffsets = data.when
@@ -212,24 +212,24 @@ const transformData = (data: FormData): TransformedData => {
       .map((option: string) => ({
         sendOffset: getOffsetFromWhen(option),
         sendBefore: isBefore,
-      }))
+      }));
 
     if (
       data.isScheduled &&
       (data.scheduleDays || data.scheduleHours || data.scheduleMinutes)
     ) {
-      const days = parseInt(data.scheduleDays || "0")
-      const hours = parseInt(data.scheduleHours || "0")
-      const minutes = parseInt(data.scheduleMinutes || "0")
-      const offset = days * 24 * 60 + hours * 60 + minutes
+      const days = parseInt(data.scheduleDays || "0");
+      const hours = parseInt(data.scheduleHours || "0");
+      const minutes = parseInt(data.scheduleMinutes || "0");
+      const offset = days * 24 * 60 + hours * 60 + minutes;
       if (offset > 0) {
         whenOffsets.push({
           sendOffset: offset,
           sendBefore: isBefore,
-        })
+        });
       }
     }
-    reminderOffset.push(...whenOffsets)
+    reminderOffset.push(...whenOffsets);
   }
 
   if (
@@ -240,18 +240,18 @@ const transformData = (data: FormData): TransformedData => {
   ) {
     const dateTime = new Date(
       `${data.scheduleDate.split("T")[0]}T${data.scheduleTime}:00.000Z`
-    )
+    );
     reminderOffset.push({
       scheduledAt: dateTime.toISOString(),
       sendBefore: isBefore,
-    })
+    });
   }
 
   const uniqueNotifications = Array.from(new Set(data.notifications)).map(
     (method: string) => ({
       method: method === "Push Notification" ? "PUSH" : method.toUpperCase(),
     })
-  )
+  );
 
   return {
     type: frontendToBackendType[data.type] || "REMINDER",
@@ -261,58 +261,58 @@ const transformData = (data: FormData): TransformedData => {
     services: data.service ? [data.service] : [],
     notifications: uniqueNotifications,
     reminderOffset,
-  }
-}
+  };
+};
 
 const reverseTransformData = (
   data: TransformedData & { id?: string; services: Service[] }
 ): FormData => {
-  const frontendType = backendToFrontendType[data.type] || "Upcoming"
-  const when: string[] = []
-  let isScheduled = false
-  let scheduleDays = ""
-  let scheduleHours = ""
-  let scheduleMinutes = ""
-  let scheduleDate: string | null = null
-  let scheduleTime = ""
+  const frontendType = backendToFrontendType[data.type] || "Upcoming";
+  const when: string[] = [];
+  let isScheduled = false;
+  let scheduleDays = "";
+  let scheduleHours = "";
+  let scheduleMinutes = "";
+  let scheduleDate: string | null = null;
+  let scheduleTime = "";
 
   if (frontendType !== "Custom") {
     data.reminderOffset.forEach((offset) => {
       if (offset.sendOffset) {
-        const whenOption = getWhenFromOffset(offset.sendOffset, frontendType)
+        const whenOption = getWhenFromOffset(offset.sendOffset, frontendType);
         if (whenOption) {
-          when.push(whenOption)
+          when.push(whenOption);
         } else {
-          isScheduled = true
-          const schedule = offsetToSchedule(offset.sendOffset)
-          scheduleDays = schedule.scheduleDays
-          scheduleHours = schedule.scheduleHours
-          scheduleMinutes = schedule.scheduleMinutes
+          isScheduled = true;
+          const schedule = offsetToSchedule(offset.sendOffset);
+          scheduleDays = schedule.scheduleDays;
+          scheduleHours = schedule.scheduleHours;
+          scheduleMinutes = schedule.scheduleMinutes;
         }
       }
-    })
+    });
   } else {
-    const customOffset = data.reminderOffset.find((r) => r.scheduledAt)
+    const customOffset = data.reminderOffset.find((r) => r.scheduledAt);
     if (customOffset?.scheduledAt) {
-      isScheduled = true
-      const date = new Date(customOffset.scheduledAt)
-      scheduleDate = date.toISOString()
-      scheduleTime = date.toTimeString().slice(0, 5)
+      isScheduled = true;
+      const date = new Date(customOffset.scheduledAt);
+      scheduleDate = date.toISOString();
+      scheduleTime = date.toTimeString().slice(0, 5);
     }
   }
 
   const notifications = data.notifications.map((n) => {
     switch (n.method) {
       case "EMAIL":
-        return "Email"
+        return "Email";
       case "SMS":
-        return "SMS"
+        return "SMS";
       case "PUSH":
-        return "Push Notification"
+        return "Push Notification";
       default:
-        return n.method
+        return n.method;
     }
-  })
+  });
 
   return {
     type: frontendType,
@@ -332,17 +332,17 @@ const reverseTransformData = (
     scheduleTime,
     notifications,
     autoDelete: "7 days",
-  }
-}
+  };
+};
 
 export default function ReminderForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { serviceOptions, services, fetchServices, loading, hasFetched } =
-    useServiceStore()
-  const [error, setError] = useState<string | null>(null)
-  const params = useParams()
-  const router = useRouter()
-  const reminderId = params.id as string
+    useServiceStore();
+  const [error, setError] = useState<string | null>(null);
+  const params = useParams();
+  const router = useRouter();
+  const reminderId = params.id as string;
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -361,29 +361,29 @@ export default function ReminderForm() {
       notifications: [...sendViaOptions],
       autoDelete: "7 days",
     },
-  })
+  });
 
-  const { watch, setValue, handleSubmit, setError: setFormError, reset } = form
-  const selectedType = watch("type") || "Upcoming"
-  const selectedService = watch("service")
+  const { watch, setValue, handleSubmit, setError: setFormError, reset } = form;
+  const selectedType = watch("type") || "Upcoming";
+  const selectedService = watch("service");
 
   // Fetch reminder data for edit mode
   useEffect(() => {
     if (reminderId) {
       const fetchReminder = async () => {
         try {
-          const reminder = await getReminderById(reminderId)
-          console.log("Fetched reminder by Id:", reminder)
-          const formData = reverseTransformData(reminder)
-          reset(formData)
+          const reminder = await getReminderById(reminderId);
+          console.log("Fetched reminder by Id:", reminder);
+          const formData = reverseTransformData(reminder);
+          reset(formData);
         } catch (err) {
-          console.error("Failed to fetch reminder:", err)
-          setError("Failed to load reminder. Please try again.")
+          console.error("Failed to fetch reminder:", err);
+          setError("Failed to load reminder. Please try again.");
         }
-      }
-      fetchReminder()
+      };
+      fetchReminder();
     }
-  }, [reminderId, reset])
+  }, [reminderId, reset]);
 
   // Fetch services if not already fetched
   useEffect(() => {
@@ -392,18 +392,18 @@ export default function ReminderForm() {
       loading,
       "hasFetched =",
       hasFetched
-    )
+    );
     if (!loading && !hasFetched) {
-      console.log("ReminderForm: Triggering fetchServices")
-      fetchServices()
+      console.log("ReminderForm: Triggering fetchServices");
+      fetchServices();
     }
-  }, [fetchServices, loading, hasFetched])
+  }, [fetchServices, loading, hasFetched]);
 
   // Debug services and serviceOptions
   useEffect(() => {
-    console.log("ReminderForm: services =", services)
-    console.log("ReminderForm: serviceOptions =", serviceOptions())
-  }, [services, serviceOptions])
+    console.log("ReminderForm: services =", services);
+    console.log("ReminderForm: serviceOptions =", serviceOptions);
+  }, [services, serviceOptions]);
 
   // Debug selectedType and selectedService
   useEffect(() => {
@@ -411,70 +411,70 @@ export default function ReminderForm() {
       "ReminderForm: selectedType =",
       selectedType,
       typeof selectedType
-    )
-    console.log("ReminderForm: selectedService =", selectedService)
-  }, [selectedType, selectedService])
+    );
+    console.log("ReminderForm: selectedService =", selectedService);
+  }, [selectedType, selectedService]);
 
   // Update message based on selected type
   useEffect(() => {
     setValue(
       "message",
       defaultMessages[selectedType] || defaultMessages["Default"]
-    )
-  }, [selectedType, setValue])
+    );
+  }, [selectedType, setValue]);
 
   const onSubmit = async (data: FormData) => {
-    console.log("onSubmit: raw data =", data)
+    console.log("onSubmit: raw data =", data);
 
     // Validate service selection
     if (!data.service) {
       setFormError("service", {
         type: "manual",
         message: "Please select a service",
-      })
-      setError("Please select a service")
-      return
+      });
+      setError("Please select a service");
+      return;
     }
 
     // Validate reminderOffset
     if (data.type !== "Custom" && data.when.length === 0 && !data.isScheduled) {
       setError(
         "Please select at least one 'When to send' option or enable scheduling"
-      )
-      return
+      );
+      return;
     }
     if (
       data.type === "Custom" &&
       data.isScheduled &&
       (!data.scheduleDate || !data.scheduleTime)
     ) {
-      setError("Please provide both date and time for Custom reminder")
-      return
+      setError("Please provide both date and time for Custom reminder");
+      return;
     }
 
     try {
-      setIsSubmitting(true)
-      const submittedData = transformData(data)
-      let response
+      setIsSubmitting(true);
+      const submittedData = transformData(data);
+      let response;
       if (reminderId) {
-        response = await updateReminder(reminderId, submittedData)
-        console.log("onSubmit: update response =", response)
+        response = await updateReminder(reminderId, submittedData);
+        console.log("onSubmit: update response =", response);
       } else {
-        response = await createReminder(submittedData)
-        console.log("onSubmit: create response =", response)
+        response = await createReminder(submittedData);
+        console.log("onSubmit: create response =", response);
       }
-      setError(null)
-      router.push("/reminders")
+      setError(null);
+      router.push("/reminders");
     } catch (err) {
-      console.error("Failed to save reminder:", err)
-      setError("Failed to save reminder. Please try again.")
+      console.error("Failed to save reminder:", err);
+      setError("Failed to save reminder. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   // Ensure whenOptions[selectedType] is always an array
-  const safeWhenOptions = whenOptions[selectedType] || []
+  const safeWhenOptions = whenOptions[selectedType] || [];
 
   return (
     <FormProvider {...form}>
@@ -506,14 +506,14 @@ export default function ReminderForm() {
                         disabled={reminderId && type !== selectedType}
                         onClick={() => {
                           if (!reminderId || type === selectedType) {
-                            setValue("type", type)
-                            setValue("when", [])
-                            setValue("isScheduled", false)
-                            setValue("scheduleDays", "")
-                            setValue("scheduleHours", "")
-                            setValue("scheduleMinutes", "")
-                            setValue("scheduleDate", null)
-                            setValue("scheduleTime", "")
+                            setValue("type", type);
+                            setValue("when", []);
+                            setValue("isScheduled", false);
+                            setValue("scheduleDays", "");
+                            setValue("scheduleHours", "");
+                            setValue("scheduleMinutes", "");
+                            setValue("scheduleDate", null);
+                            setValue("scheduleTime", "");
                           }
                         }}
                       >
@@ -642,5 +642,5 @@ export default function ReminderForm() {
         </CardContent>
       </Card>
     </FormProvider>
-  )
+  );
 }

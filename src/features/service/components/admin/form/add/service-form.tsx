@@ -24,7 +24,7 @@ import {
 } from "lucide-react"
 import ServiceFormSkeleton from "@/features/service/components/skeleton-form"
 import { createService } from "@/features/service/api/api"
-import { useBusinessStore } from "@/app/(admin)/business-settings/_store/business-store"
+import { useBusinessStore } from "@/app/admin/business-settings/_store/business-store"
 import Link from "next/link"
 
 // Types

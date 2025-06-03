@@ -247,17 +247,20 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import InputField from "@/components/custom-form-fields/input-field"
 import { CheckCircle, Building2, Mail, Phone, MapPin, Map } from "lucide-react"
-import BusinessHourSelector from "@/app/(admin)/business-settings/_components/business-hour-selector"
+import BusinessHourSelector from "@/app/admin/business-settings/_components/business-hour-selector"
 import {
   transformSupportDetailForForm,
   transformBusinessDataForSupportDetail,
   transformFormDataForSupportDetail,
   useSupportTabsStore,
-} from "@/app/(admin)/support/_store/support-store"
-import { useBusinessStore } from "@/app/(admin)/business-settings/_store/business-store"
+} from "@/app/admin/support/_store/support-store"
+import { useBusinessStore } from "@/app/admin/business-settings/_store/business-store"
 import BusinessDaysField from "@/components/custom-form-fields/business-settings/business-day-field"
 import HolidayField from "@/components/custom-form-fields/business-settings/business-holiday-field"
-import { createSupportDetail, updateSupportDetail } from "@/app/(admin)/support/_api-call/support-api-call"
+import {
+  createSupportDetail,
+  updateSupportDetail,
+} from "@/app/admin/support/_api-call/support-api-call"
 
 const schema = z.object({
   businessName: z.string().min(1, "Business name is required"),
@@ -282,11 +285,26 @@ const defaultFormValues = {
   address: "",
   googleMap: "",
   businessHours: {
-    Mon: { work: [["09:00 AM", "04:00 PM"]], break: [["12:00 PM", "01:00 PM"]] },
-    Tue: { work: [["09:00 AM", "04:00 PM"]], break: [["12:00 PM", "01:00 PM"]] },
-    Wed: { work: [["09:00 AM", "04:00 PM"]], break: [["12:00 PM", "01:00 PM"]] },
-    Thu: { work: [["09:00 AM", "04:00 PM"]], break: [["12:00 PM", "01:00 PM"]] },
-    Fri: { work: [["09:00 AM", "04:00 PM"]], break: [["12:00 PM", "01:00 PM"]] },
+    Mon: {
+      work: [["09:00 AM", "04:00 PM"]],
+      break: [["12:00 PM", "01:00 PM"]],
+    },
+    Tue: {
+      work: [["09:00 AM", "04:00 PM"]],
+      break: [["12:00 PM", "01:00 PM"]],
+    },
+    Wed: {
+      work: [["09:00 AM", "04:00 PM"]],
+      break: [["12:00 PM", "01:00 PM"]],
+    },
+    Thu: {
+      work: [["09:00 AM", "04:00 PM"]],
+      break: [["12:00 PM", "01:00 PM"]],
+    },
+    Fri: {
+      work: [["09:00 AM", "04:00 PM"]],
+      break: [["12:00 PM", "01:00 PM"]],
+    },
     Sat: { work: [], break: [] },
     Sun: { work: [], break: [] },
   },
@@ -295,7 +313,8 @@ const defaultFormValues = {
 }
 
 const ContactInformationForm = () => {
-  const { supportDetail, getSupportBusinessDetailById, setSupportDetail } = useSupportTabsStore()
+  const { supportDetail, getSupportBusinessDetailById, setSupportDetail } =
+    useSupportTabsStore()
   const { selectedBusiness } = useBusinessStore()
   const [useBusinessInfo, setUseBusinessInfo] = useState(false) // Default to false to prioritize supportDetail
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -311,7 +330,10 @@ const ContactInformationForm = () => {
   // Fetch support details when selectedBusiness.id changes
   useEffect(() => {
     if (selectedBusiness?.id) {
-      console.log("Fetching support details for business ID:", selectedBusiness.id)
+      console.log(
+        "Fetching support details for business ID:",
+        selectedBusiness.id
+      )
       getSupportBusinessDetailById(selectedBusiness.id)
     }
   }, [selectedBusiness?.id, getSupportBusinessDetailById])
@@ -331,7 +353,10 @@ const ContactInformationForm = () => {
   useEffect(() => {
     let formData
     if (useBusinessInfo && selectedBusiness) {
-      console.log("Populating form with transformed business data:", selectedBusiness)
+      console.log(
+        "Populating form with transformed business data:",
+        selectedBusiness
+      )
       formData = transformBusinessDataForSupportDetail(selectedBusiness)
     } else if (!useBusinessInfo && supportDetail) {
       console.log("Populating form with support detail:", supportDetail)
@@ -378,14 +403,16 @@ const ContactInformationForm = () => {
         toast.success("Support details created successfully!")
       }
 
-      if (response.data) {
-        setSupportDetail(response.data)
+      if (response) {
+        setSupportDetail(response)
       } else {
         throw new Error("Failed to save support details")
       }
     } catch (error: any) {
       console.error("Error saving support details:", error)
-      toast.error(`Failed to save support details: ${error.message || "Unknown error"}`)
+      toast.error(
+        `Failed to save support details: ${error.message || "Unknown error"}`
+      )
     } finally {
       setIsSubmitting(false)
     }
@@ -414,7 +441,7 @@ const ContactInformationForm = () => {
           </div>
           <p className="text-xs text-muted-foreground">
             📌 To let users know who to reach to for specific issues. Following
-            details are taken from Business Settings > Business Details.
+            details are taken from Business Settings &gt Business Details.
           </p>
         </div>
 
@@ -468,8 +495,8 @@ const ContactInformationForm = () => {
               ? "Updating..."
               : "Creating..."
             : supportDetail?.id
-            ? "Update"
-            : "Create"}
+              ? "Update"
+              : "Create"}
         </Button>
       </form>
     </FormProvider>
