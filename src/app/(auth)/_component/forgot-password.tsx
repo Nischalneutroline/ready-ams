@@ -11,6 +11,7 @@ import {
 } from "../_schemas/forgot-form-schema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import Link from "next/link";
 
 interface ForgotPasswordProps {
   onBackToLogin: () => void;
@@ -122,20 +123,20 @@ const ForgotPassword = ({
           </form>
 
           {/* Back to Login Link */}
-          <button
-            onClick={onBackToLogin}
+          <Link
+            href="/sign-in"
             className="w-full flex items-center justify-center text-sm text-sky-600 hover:text-sky-700 font-medium py-2 transition-all duration-200 hover:underline transform hover:scale-[1.02]"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Login
-          </button>
-          <button
-            onClick={onBackToResetPassword}
+          </Link>
+          <Link
+            href="/new-password"
             className="w-full flex items-center justify-center text-sm text-sky-600 hover:text-sky-700 font-medium py-2 transition-all duration-200 hover:underline transform hover:scale-[1.02]"
           >
             <ArrowRight className="w-4 h-4 mr-2" />
             Reset Password
-          </button>
+          </Link>
         </CardContent>
       </Card>
     </div>
