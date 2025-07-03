@@ -1,9 +1,10 @@
 // src/features/service/schemas/schema.ts
 import { z } from "zod";
-import { Status, WeekDays } from "../_types/service";
+import { Status, WeekDays,ServiceType } from "../_types/service";
 
 export const serviceSchema = z.object({
   id: z.string().optional(),
+  type: z.enum([ServiceType.PHYSICAL, ServiceType.VIRTUAL]),
   title: z.string().min(3, "Title must be at least 3 characters long"),
   description: z
     .string()
@@ -17,6 +18,7 @@ export const serviceSchema = z.object({
   serviceAvailability: z
     .array(
       z.object({
+        id: z.string().optional(), 
         weekDay: z.enum([
           WeekDays.SUNDAY,
           WeekDays.MONDAY,
@@ -37,5 +39,15 @@ export const serviceSchema = z.object({
       })
     )
     .optional(),
-  businessDetailId: z.string().min(1, "Business ID is required"),
+/*   businessDetailId: z.string().min(1, "Business ID is required"), */
+  businessDetailId: z.string().optional(),
+  individualId: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.type === ServiceType.PHYSICAL && !data.businessDetailId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['businessDetailId'],
+      message: "Business ID is required for physical services",
+    });
+  }
 });

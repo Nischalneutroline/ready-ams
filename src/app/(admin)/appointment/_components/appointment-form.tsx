@@ -173,10 +173,10 @@ export default function AppointmentForm() {
         selectedDate: formData.date, // Converts Date to ISO string (e.g., "2025-05-06T00:00:00.000Z")
         selectedTime: formData.time, // Converts time to ISO format
         message: formData.message,
-        userId: "cmb8pvkt80000vdz0z6yfg58p", // TODO: Replace with dynamic user ID
+        userId: "cmben86we0000vd8gk890533p", // TODO: Replace with dynamic user ID
         isForSelf: false,
-        bookedById: "cmb8pvkt80000vdz0z6yfg58p", // TODO: Replace with dynamic bookedById
-        createdById: "cmb8pvkt80000vdz0z6yfg58p", // TODO: Replace with dynamic createdById
+        bookedById: "cmben86we0000vd8gk890533p", // TODO: Replace with dynamic bookedById
+        createdById: "cmben86we0000vd8gk890533p", // TODO: Replace with dynamic createdById
         status: AppointmentStatus.SCHEDULED, // TODO: Add status dropdown
       }
 

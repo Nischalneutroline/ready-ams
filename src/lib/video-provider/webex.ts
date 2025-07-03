@@ -37,3 +37,37 @@ export async function refreshWebexToken(videoIntegration: any) {
     throw new Error('Failed to refresh Webex token');
   }
 }
+
+//for webex
+export async function createWebexMeeting(
+  webexAccessToken: string,
+  meetingDetails: any
+): Promise<string> {
+  const startTime = new Date(meetingDetails.timeSlot);
+  const durationMinutes = meetingDetails.duration || 60;
+  const endTime = new Date(startTime.getTime() + durationMinutes * 60000);
+
+  const response = await fetch("https://webexapis.com/v1/meetings", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${webexAccessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      title: meetingDetails.title,
+      agenda: meetingDetails.description,
+      start: startTime.toISOString(),
+      end: endTime.toISOString(),
+      invitees: [{ email: meetingDetails.bookedByEmail }],
+    }),
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    console.error("Webex API Error:", data);
+    throw new Error("Failed to create Webex meeting");
+  }
+
+  // The join link for attendees
+  return data.webLink; // or data.joinMeetingLink
+}

@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   // You can reuse your existing logic to generate the correct OAuth URL for each provider
 
-  const userId = "cmb8pvkt80000vdz0z6yfg58p"; // Get from your auth system (Clerk)
+  const userId = "cmben86we0000vd8gk890533p"; // Get from your auth system (Clerk)
   if (!userId) {
     return NextResponse.json(
       { message: "Unauthorized!", success: false },
@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function GET(req: NextRequest) {
-  const userId = "cmb8pvkt80000vdz0z6yfg58p";
+  const userId = "cmben86we0000vd8gk890533p";
   const individual = await prisma.individual.findUnique({
     where: { userId },
     include: { videoIntegrations: true },

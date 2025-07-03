@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 const MS_CLIENT_ID = process.env.MS_CLIENT_ID!;
 const MS_CLIENT_SECRET = process.env.MS_CLIENT_SECRET!;
-const MS_REDIRECT_URI = "http://localhost:3000/api/microsoft-team/callback";
+const MS_REDIRECT_URI = `${process.env.ORIGIN}/api/microsoft-team/callback`;
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);

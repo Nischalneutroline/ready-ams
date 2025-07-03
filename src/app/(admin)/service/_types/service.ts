@@ -1,6 +1,9 @@
+import { Individual } from "@/features/individual/types/types";
+
 export interface Service {
   id: string
   title: string
+   type: ServiceType;
   description: string
   estimatedDuration: number // in minutes
   status?: Status // ACTIVE or INACTIVE
@@ -9,6 +12,7 @@ export interface Service {
   createdAt: Date
   updatedAt: Date
   businessDetailId: string | null
+   individual?: Individual
    imageUrl?: string         
   imageUrlFileId?: string
 }
@@ -36,6 +40,12 @@ export enum WeekDays {
   THURSDAY = "THURSDAY",
   FRIDAY = "FRIDAY",
   SATURDAY = "SATURDAY",
+}
+
+
+export enum ServiceType {
+  PHYSICAL = "PHYSICAL",
+  VIRTUAL = "VIRTUAL",
 }
 
 export interface ApiReturnType<T = any> {

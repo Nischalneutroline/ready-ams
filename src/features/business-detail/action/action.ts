@@ -5,7 +5,7 @@ import {
 
 // Set business detail dynamically
 
-export const businessId = "cmacgqszn0001msf6gqkxp5as"
+export const businessId = "cmbfcqfal0025vdgkgj6d2n0a"
 
 export const business = await getBusinessById(businessId)
 console.log(business, "Business Data in Action")

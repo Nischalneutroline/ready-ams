@@ -91,6 +91,7 @@ export async function PUT(req: NextRequest, { params }: ParamsProps) {
         where: { id },
         data: {
           title: parsedData.title,
+          type: parsedData.type,
           description: parsedData.description,
           estimatedDuration: parsedData.estimatedDuration,
           status: parsedData.status,

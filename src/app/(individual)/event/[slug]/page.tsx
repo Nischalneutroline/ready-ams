@@ -4,110 +4,63 @@ import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { Event } from "@/features/individual-event/types/types";
+import Link from "next/link";
+import { ShareableLink } from "@/features/individual-event/types/types";
+
+// Helper: Prisma WeekDays enum to JS Date.getDay()
+const weekDayEnumToIndex = {
+  SUNDAY: 0,
+  MONDAY: 1,
+  TUESDAY: 2,
+  WEDNESDAY: 3,
+  THURSDAY: 4,
+  FRIDAY: 5,
+  SATURDAY: 6,
+};
 
 export default function BookingPage() {
   const { slug } = useParams();
-  const [selectedDate, setSelectedDate] = useState(new Date(2025, 6, 22)); // July 22, 2025
+  const [link, setLink] = useState<ShareableLink | null>(null); // ShareableLink object
+  const [loading, setLoading] = useState(true);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [comment, setComment] = useState("");
-  const [event, setEvent] = useState<Event | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchEvent() {
+    async function fetchLink() {
       setLoading(true);
       try {
         const res = await fetch(`/api/individual-event/book-event/${slug}`);
         const data = await res.json();
         console.log("data is", data);
-        setEvent(data.data); // adjust this depending on your API response
+        setLink(data.data); // ShareableLink object from backend
       } catch (e) {
-        setEvent(null);
+        setLink(null);
       } finally {
         setLoading(false);
       }
     }
-    if (slug) fetchEvent();
+    if (slug) fetchLink();
   }, [slug]);
 
   if (loading) return <div>Loading...</div>;
-  if (!event) return <div>Event not found</div>;
+  if (!link) return <div>Event not found</div>;
 
-  const handleTimeClick = (slot: string) => {
-    setSelectedTime(slot);
-    setShowForm(true);
-  };
+  const service = link.service;
+  const provider = service?.individual;
+  const availability = service?.serviceAvailability ?? [];
 
-const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-
-  if (!event || !selectedDate || !selectedTime) {
-    // Optionally show an error to the user
-    return;
-  }
-
-  // Find the slot object for the selected time
-  const slot = slotsForSelectedDate.find(
-    s => `${s.startTime} - ${s.endTime}` === selectedTime
-  );
-
-  if (!slot) {
-    // Optionally show an error to the user
-    return;
-  }
-
-  // Construct the timeSlot as a Date object (combine selectedDate and slot.startTime)
-  const [hour, minute] = slot.startTime.split(":").map(Number);
-  const timeSlot = new Date(selectedDate);
-  timeSlot.setHours(hour, minute, 0, 0);
-
-  // Prepare the payload
-  const payload = {
-    eventId: event.id,
-    timeSlot: timeSlot.toISOString(),
-    duration: slot.duration,
-    bookedByName: "", // Add a field for user to enter their name if needed
-    bookedByEmail: email,
-    comment,
-  };
-
-  try {
-    const response = await fetch("/api/meeting", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const data = await response.json();
-    console.log('data is',data)
-
-    if (response.ok) {
-      // Success: show a success message, reset form, etc.
-      alert("Meeting booked successfully!");
-      setShowForm(false);
-      setSelectedTime(null);
-      setEmail("");
-      setComment("");
-    } else {
-      // Error: show error message
-      alert(data.error || "Failed to book meeting");
-    }
-  } catch (err) {
-    alert("Network error. Please try again.");
-  }
-};
-
-  function getAvailableDates(availability: any[]): Date[] {
-    const result: Date[] = [];
+  // Prepare available dates for the calendar
+  function getAvailableDates(availability) {
+    const result = [];
     const today = new Date();
     const year = today.getFullYear();
     const month = today.getMonth();
-    const nextMonth = (month + 1) % 12;
-    const endMonth = nextMonth === 0 ? 12 : nextMonth;
-    const endDate = new Date(year, endMonth, 1);
+    const endDate = new Date(year, month + 1, 1);
 
     for (
       let d = new Date(year, month, today.getDate());
@@ -115,7 +68,7 @@ const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       d.setDate(d.getDate() + 1)
     ) {
       for (const slot of availability) {
-        if (d.getDay() === slot.dayOfWeek) {
+        if (d.getDay() === weekDayEnumToIndex[slot.weekDay]) {
           result.push(new Date(d));
           break;
         }
@@ -124,17 +77,17 @@ const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     return result;
   }
 
-  function getTimeSlotsForDate(date: Date, availability: any[]) {
-    return availability.filter((a) => date.getDay() === a.dayOfWeek);
+  function getTimeSlotsForDate(date, availability) {
+    const dayIndex = date.getDay();
+    return availability
+      .filter((a) => weekDayEnumToIndex[a.weekDay] === dayIndex)
+      .flatMap((a) => a.timeSlots);
   }
 
-  const availableDates = event?.availability
-    ? getAvailableDates(event.availability)
+  const availableDates = getAvailableDates(availability);
+  const slotsForSelectedDate = selectedDate
+    ? getTimeSlotsForDate(selectedDate, availability)
     : [];
-  const slotsForSelectedDate =
-    selectedDate && event?.availability
-      ? getTimeSlotsForDate(selectedDate, event.availability)
-      : [];
   const isDateAvailable =
     selectedDate &&
     availableDates.some(
@@ -144,19 +97,96 @@ const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         d.getDate() === selectedDate.getDate()
     );
 
+  const handleTimeClick = (slot) => {
+    setSelectedTime(slot);
+    setShowForm(true);
+  };
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    if (!link || !selectedDate || !selectedTime) return;
+
+    // Find the slot object for the selected time
+    const slot = slotsForSelectedDate.find(
+      (s) => `${s.startTime} - ${s.endTime}` === selectedTime
+    );
+    if (!slot) return;
+
+    const [hour, minute] = slot.startTime.split(":").map(Number);
+    const timeSlot = new Date(selectedDate);
+    timeSlot.setHours(hour, minute, 0, 0);
+
+    const startTimeISO = timeSlot.toISOString();
+
+    // Calculate endTime by adding duration (in minutes)
+    const endTimeDate = new Date(
+      timeSlot.getTime() + (service?.estimatedDuration ?? 30) * 60000
+    );
+    const endTimeISO = endTimeDate.toISOString();
+
+    // Prepare the payload, always include type property
+    const payload = {
+       serviceId: service?.id,   
+      startTime: startTimeISO, // required
+      endTime: endTimeISO,
+      timeSlot: timeSlot.toISOString(),
+      duration: service?.estimatedDuration,
+      bookedByEmail: email,
+      bookedByName: name,
+      bookerPhone: phone,
+      comment,
+      slug: link.slug,  
+    };
+
+    try {
+      const response = await fetch("/api/meeting", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        alert("Meeting booked successfully!");
+        setShowForm(false);
+        setSelectedTime(null);
+        setEmail("");
+        setComment("");
+      } else {
+        alert(data.error || "Failed to book meeting");
+      }
+    } catch (err) {
+      alert("Network error. Please try again.");
+    }
+  };
+
   return (
     <div className="bg-gray-50 min-h-screen py-10">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row gap-8 justify-center">
-        {/* Left: Event Info */}
+        {/* Left: Provider Info */}
         <Card className="shadow-lg border border-gray-200 bg-white rounded-xl w-full max-w-xs md:w-[320px]">
           <CardHeader className="flex flex-col items-center gap-2">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
-              <img src={event.individual.profileImage || ""} alt="image" />
-            </div>
-            <div className="font-semibold text-lg">{event?.user?.name}</div>
-            <div className="text-2xl font-bold text-center">{event?.title}</div>
+            <Link
+              href={`/profile/${provider?.id}`}
+              className="hover:underline w-full flex flex-col items-center"
+            >
+              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-2">
+                {provider?.profileImage && (
+                  <img
+                    src={provider.profileImage}
+                    alt="Profile"
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
+                )}
+              </div>
+              <div className="font-semibold text-lg">
+                {provider?.user?.name}
+              </div>
+              <div className="text-md text-center text-gray-500">
+                {provider?.position}
+              </div>
+            </Link>
             <div className="text-2xl font-bold text-center">
-              {event?.individual?.position}
+              {service?.title}
             </div>
           </CardHeader>
           <CardContent className="flex flex-col items-center gap-2">
@@ -164,13 +194,16 @@ const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               <div className="flex items-center gap-2">
                 <span className="material-icons text-base">schedule</span>
                 <span className="font-medium">
-                  {" "}
-                  {event?.availability?.map((a) => a.duration)} min
+                  {service?.estimatedDuration} min
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="material-icons text-base">videocam</span>
-                <span className="font-medium">{event?.location}</span>
+                <span className="font-medium">{link.location}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="material-icons text-base">event</span>
+                <span className="font-medium">{link.type}</span>
               </div>
             </div>
             <div className="mt-4 space-y-2 w-full">
@@ -193,14 +226,14 @@ const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             onSelect={setSelectedDate}
             className="rounded-md border shadow w-full"
             classNames={{
-              months: "flex flex-row gap-2 w-full justify-center", // horizontal layout
-              month: "flex flex-col gap-2 w-full", // remove gap-4
+              months: "flex flex-row gap-2 w-full justify-center",
+              month: "flex flex-col gap-2 w-full",
               table: "w-full border-collapse",
               head_row: "flex w-full",
               head_cell:
                 "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem]",
               row: "flex w-full mt-2",
-              cell: "relative p-0 text-center text-sm w-10 h-10", // wider day cells
+              cell: "relative p-0 text-center text-sm w-10 h-10",
               day: "w-10 h-10 p-0 font-normal aria-selected:opacity-100",
             }}
             modifiers={{
@@ -213,9 +246,7 @@ const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           <div className="mt-4 text-sm text-gray-500 flex items-center gap-1">
             <span>
               Time zone:{" "}
-              <span className="font-medium">
-                Eastern time – US &amp; Canada
-              </span>
+              <span className="font-medium">{provider?.timezone || "UTC"}</span>
             </span>
           </div>
         </div>
@@ -231,7 +262,6 @@ const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   day: "numeric",
                 })}
           </div>
-          {/* Show booking form if a slot is selected and showForm is true */}
           {showForm ? (
             <form
               onSubmit={handleFormSubmit}
@@ -241,6 +271,16 @@ const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 <strong>Selected Time:</strong> {selectedTime}
               </div>
               <div>
+                <div>
+                  <label className="block mb-1">Name</label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="border rounded px-2 py-1 w-full"
+                  />
+                </div>
                 <label className="block mb-1">Email:</label>
                 <input
                   type="email"
@@ -251,6 +291,17 @@ const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 />
               </div>
               <div>
+                <label className="block mb-1">Phone:</label>
+                <input
+                  type="phone"
+                  required
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="border rounded px-2 py-1 w-full"
+                />
+              </div>
+
+              <div>
                 <label className="block mb-1">Comment:</label>
                 <textarea
                   value={comment}
@@ -258,6 +309,7 @@ const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   className="border rounded px-2 py-1 w-full"
                 />
               </div>
+
               <Button type="submit" className="w-full bg-blue-600 text-white">
                 Book meeting
               </Button>
@@ -284,7 +336,8 @@ const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   }
                   className="w-full"
                 >
-                  {slot.startTime} - {slot.endTime} ({slot.duration} min)
+                  {slot.startTime} - {slot.endTime} (
+                  {service?.estimatedDuration} min)
                 </Button>
               ))}
             </div>

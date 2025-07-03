@@ -12,7 +12,7 @@ const weekdayMap: Record<string, string> = {
 }
 
 export async function transformBusinessData() {
-  const businessId = "cm9gvwy4s0003vdg0f24wf178"
+  const businessId = "cmbfcqfal0025vdgkgj6d2n0a"
   const business = await getBusinessById(businessId)
 
   if (!business) {

@@ -203,7 +203,7 @@ if (reminderType === "REMINDER") {
 
     // Only create appointmentReminderOffset if scheduledAt is still in future
     if (scheduledAtUTC > now) {
-      console.log('hi')
+     
       await prisma.appointmentReminderOffset.create({
         data: {
           appointmentId: appointment.id,

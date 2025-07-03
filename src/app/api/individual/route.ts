@@ -5,7 +5,7 @@ import { ZodError } from "zod";
 import { Individual } from "@/features/individual/types/types";
 
 export async function POST(req: NextRequest) {
-  const userId = "cmb8pvkt80000vdz0z6yfg58p"; //fetch userId from clerk authentication
+  const userId = "cmben86we0000vd8gk890533p"; //fetch userId from clerk authentication
   if (!userId) {
     return NextResponse.json(
       { message: "User ID not found!", success: false },
@@ -38,9 +38,23 @@ export async function POST(req: NextRequest) {
         bio: parsedData.bio,
         position: parsedData.position,
         profileImage: parsedData.profileImage,
+        imageFileId: parsedData.imageFileId,
         country: parsedData.country,
         timezone: parsedData.timezone,
         userId: userId, // Assign Clerk's user ID here
+        company: parsedData.company,
+        website: parsedData.website,
+        linkedinUrl: parsedData.linkedinUrl,
+        experiences: {
+            create: (parsedData.experiences ?? []).map((experience) => ({
+              company: experience.company,
+              role: experience.role,
+              description: experience.description,
+               startDate: experience.startDate ,
+                 endDate: experience.endDate,
+                 isCertification: experience.isCertification,
+            }))
+        }
       },
     });
 
@@ -64,7 +78,7 @@ export async function POST(req: NextRequest) {
 //fetch all profile
 export async function GET() {
   const individuals = await prisma.individual.findMany({
-    include: { user: true, events: true },
+    include: { user: true, experiences: true },
   });
 
   return NextResponse.json(

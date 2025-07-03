@@ -5,20 +5,40 @@ interface ParamsProps {
   params: Promise<{ slug: string }>;
 }
 
+// GET /api/bookevent/[slug]
 export async function GET(req: NextRequest, { params }: ParamsProps) {
   const { slug } = await params;
+
   try {
-    const event = await prisma.event.findUnique({
-      where: { slug }, // Search by slug
-      include: { availability: true, individual: true, user: true },
+    // Find the shareable link by slug, including all relevant relations
+    const link = await prisma.shareableLink.findUnique({
+      where: { slug },
+      include: {
+        service: {
+          include: {
+            serviceAvailability: {
+              include: { timeSlots: true }
+            },
+            individual: true,
+            meetings: true, // If you want to show existing meetings
+          }
+        },
+        appointment: true,
+        resource: true,
+        serviceTime: true,
+      },
     });
-    if (!event) {
+
+    if (!link) {
       return NextResponse.json(
         { message: "Event not found", success: false },
         { status: 404 }
       );
     }
-    return NextResponse.json({ data: event, success: true });
+
+    // Optionally: If you want to filter out expired links, add a check here
+
+    return NextResponse.json({ data: link, success: true });
   } catch (error) {
     return NextResponse.json(
       { message: "Failed to fetch event", error, success: false },

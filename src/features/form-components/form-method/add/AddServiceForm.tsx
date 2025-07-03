@@ -48,7 +48,7 @@ const AddServiceForm = () => {
       description: data.description,
       estimatedDuration: Number(data.estimatedDuration),
       status: data.avalabilities ? "ACTIVE" : "INACTIVE",
-      businessDetailId: data.businessDetailId ?? "cmacgqszn0001msf6gqkxp5as",
+      businessDetailId: data.businessDetailId ?? "cmbfcqfal0025vdgkgj6d2n0a",
 
       // Parse the weekly availability with time slots
       serviceAvailability: data.serviceHourDay?.map((day: any) => ({

@@ -22,7 +22,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     console.log("App fully loaded, fetching appoinments, services, business...")
     // Fetch once after app loads
-    const id = "cmb8pzeyi0002vdz07ox053m2"// Updated to match provided business data
+    const id = "cmbfcqfal0025vdgkgj6d2n0a"// Updated to match provided business data
     fetchBusinessById(id)
     fetchAppointments()
     fetchServices()

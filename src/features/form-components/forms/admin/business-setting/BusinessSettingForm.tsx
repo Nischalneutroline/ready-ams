@@ -33,7 +33,7 @@ import SwitchInput from "@/features/shared-features/form/switchinput";
 import { DayAndTimeSelection } from "@/features/shared-features/form/dayandtimeselection";
 import { createBusiness, retrieveBusiness } from "@/state/admin/AdminServices";
 import { formOuterDivCss } from "@/features/shared-features/form/props";
-import { ServiceAvailability } from "@/features/service/types/types";
+import { ServiceAvailability } from "@/app/(admin)/service/_types/service";
 
 const BusinessSettingForm = () => {
   // Redux Variable
@@ -44,7 +44,7 @@ const BusinessSettingForm = () => {
   );
 
   const dataToEdit = details?.find(
-    (u: any) => u.id === "cmacgqszn0001msf6gqkxp5as"
+    (u: any) => u.id === "cmbfcqfal0025vdgkgj6d2n0a"
   );
 
   console.log(dataToEdit, "inside business detail");
@@ -57,6 +57,10 @@ const BusinessSettingForm = () => {
       phone: data.phone,
       website: `https://${data.website}`,
       businessRegistrationNumber: data.businessRegistrationNumber,
+      taxId: data.taxId,
+      taxIdFileId: data.taxIdFileId,
+      logo: data.logo, 
+      logoFileId: data.logoFileId,
       status: data.status,
       address: [
         {

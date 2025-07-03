@@ -4,13 +4,18 @@ import { prisma } from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
 
+interface ParamsProps {
+  params: Promise<{ id: string }>;
+}
+
+
 // GET endpoint to fetch a single individual by ID
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: ParamsProps
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
@@ -32,8 +37,7 @@ export async function GET(
             // Add other user fields you want to include
           },
         },
-        // Optionally include events
-        events: true,
+        experiences: true,
       },
     });
 
@@ -63,18 +67,11 @@ export async function GET(
 //PUT request using params
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: ParamsProps 
 ) {
   try {
-    const userId = "cmb8pvkt80000vdz0z6yfg58p"; // fetch userId from clerk authentication
-    if (!userId) {
-      return NextResponse.json(
-        { message: "User ID not found!", success: false },
-        { status: 401 }
-      );
-    }
-
-    const { id } = params;
+ 
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
@@ -93,22 +90,12 @@ export async function PUT(
 
     if (!existingIndividual) {
       return NextResponse.json(
-        { message: "Individual profile not found!", success: false },
+        { message: "Profile not found!", success: false },
         { status: 404 }
       );
     }
 
-    // Verify that the user owns this profile
-    if (existingIndividual.userId !== userId) {
-      return NextResponse.json(
-        {
-          message: "Unauthorized: You cannot update this profile!",
-          success: false,
-        },
-        { status: 403 }
-      );
-    }
-
+ 
     // Update individual profile
     const updatedIndividual: Individual = await prisma.individual.update({
       where: { id: id },
@@ -116,8 +103,22 @@ export async function PUT(
         bio: parsedData.bio,
         position: parsedData.position,
         profileImage: parsedData.profileImage,
+        imageFileId: parsedData.imageFileId,
         country: parsedData.country,
         timezone: parsedData.timezone,
+         company: parsedData.company,
+        website: parsedData.website,
+        linkedinUrl: parsedData.linkedinUrl,
+        experiences: {
+          deleteMany: {},
+            create: (parsedData.experiences ?? []).map((experience) => ({
+              company: experience.company,
+              role: experience.role,
+              description: experience.description,
+               startDate: experience.startDate,
+                 endDate: experience.endDate
+            }))
+        }
       },
     });
 
@@ -149,19 +150,12 @@ export async function PUT(
 
 //delete individual
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
+ req: NextRequest,
+  { params }: ParamsProps
 ) {
   try {
-    const userId = "cmb8pvkt80000vdz0z6yfg58p"; // Get from your auth system
-    if (!userId) {
-      return NextResponse.json(
-        { message: "Unauthorized!", success: false },
-        { status: 401 }
-      );
-    }
 
-    const { id } = params;
+    const { id } = await params;
 
     if (!id) {
       return NextResponse.json(
@@ -179,14 +173,6 @@ export async function DELETE(
       return NextResponse.json(
         { message: "Individual not found!", success: false },
         { status: 404 }
-      );
-    }
-
-    // Verify ownership
-    if (existingIndividual.userId !== userId) {
-      return NextResponse.json(
-        { message: "You don't have permission to delete this record!", success: false },
-        { status: 403 }
       );
     }
 

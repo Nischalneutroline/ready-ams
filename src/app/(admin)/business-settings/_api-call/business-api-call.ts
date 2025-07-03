@@ -14,7 +14,10 @@ export interface Business {
   phone: string
   address: string
   description: string
+  taxId?: string
+  taxIdFileId?: string            
   logo?: string
+  logoFileId? : string                
   status: string
   createdAt?: string
   updatedAt?: string

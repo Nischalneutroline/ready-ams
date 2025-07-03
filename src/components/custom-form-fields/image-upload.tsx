@@ -1,25 +1,27 @@
-"use client"
+"use client";
 
-import { useFormContext } from "react-hook-form"
+import { useFormContext } from "react-hook-form";
 import {
   FormControl,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { cn } from "@/lib/utils"
-import { LucideIcon } from "lucide-react"
-import { useState } from "react"
-import { Trash2 } from "lucide-react"; 
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { LucideIcon, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { useRef } from "react";
 
 interface FileUploadFieldProps {
-  name: string
-  label: string
-  placeholder?: string
-  className?: string
-  icon?: LucideIcon
+  name: string;
+  label: string;
+  placeholder?: string;
+  className?: string;
+  icon?: LucideIcon;
+  value?: string | null;
+  onChange?: (url: string, fileId?: string) => void;
 }
 
 const FileUploadField = ({
@@ -28,17 +30,20 @@ const FileUploadField = ({
   placeholder,
   className,
   icon: Icon,
+  value,
+  onChange,
 }: FileUploadFieldProps) => {
-  const { setValue, watch } = useFormContext();
-   const imageUrl = watch(name);
-
+  const { setValue, watch, control } = useFormContext();
+  const imageUrl = watch(name);
+  // Use imageUrl from watch, but fallback to value if imageUrl is undefined
+  const displayImageUrl = imageUrl ?? value;
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-     const file = e.target.files?.[0];
-     if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
     setUploading(true);
     setUploadError(null);
 
@@ -52,14 +57,13 @@ const FileUploadField = ({
       });
       const data = await res.json();
       if (data.success) {
-        console.log('data',data)
+        onChange?.(data.data.url, data.data.fileId);
         setValue(name, data.data.url);
         setValue(`${name}FileId`, data.data.fileId);
       } else {
         setUploadError("Upload failed");
       }
     } catch (error) {
-      console.log('err',error)
       setUploadError("Upload failed");
     } finally {
       setUploading(false);
@@ -76,38 +80,64 @@ const FileUploadField = ({
     }
     setValue(name, "");
     setValue(`${name}FileId`, "");
+
+    onChange?.("", "");
+
+    // After upload (success or fail), reset the input value:
+    if (inputRef.current) inputRef.current.value = "";
   };
 
-return (
-    <div className="flex flex-col gap-2">
-      <label className="flex items-center gap-2">
-        {Icon && <Icon className="size-4 text-gray-500" />}
-        {label}
-      </label>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        disabled={uploading}
-      />
-      {uploading && <span>Uploading...</span>}
-      {uploadError && <span className="text-red-500">{uploadError}</span>}
-      {imageUrl && (
-        <div className="relative inline-block mt-2">
-          <img src={imageUrl} alt="Cover" width={200} className="rounded" />
-          <button
-            type="button"
-            onClick={handleDelete}
-            className="absolute top-1 right-1 bg-white rounded-full p-1 shadow hover:bg-red-100 transition"
-            title="Delete image"
-            disabled={uploading}
-          >
-            <Trash2 className="text-red-500 w-5 h-5" />
-          </button>
-        </div>
+  return (
+    <FormField
+      control={control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col">
+          <div className="flex gap-2 items-center">
+            {Icon && <Icon className="size-4 text-gray-500" />}
+            <FormLabel>{label}</FormLabel>
+          </div>
+          <FormControl>
+            <div>
+              <Input
+                ref={inputRef}
+                type="file"
+                accept="image/*"
+                placeholder={placeholder}
+                className={cn("w-max", className)}
+                onChange={handleFileChange}
+                disabled={uploading}
+              />
+              {uploading && <span className="ml-2 text-sm">Uploading...</span>}
+              {uploadError && (
+                <span className="ml-2 text-sm text-red-500">{uploadError}</span>
+              )}
+              {displayImageUrl && (
+                <div className="relative inline-block mt-2">
+                  <img
+                    src={displayImageUrl}
+                    alt="Cover"
+                    width={200}
+                    className="rounded"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    className="absolute top-1 right-1 bg-white rounded-full p-1 shadow hover:bg-red-100 transition"
+                    title="Delete image"
+                    disabled={uploading}
+                  >
+                    <Trash2 className="text-red-500 w-5 h-5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </FormControl>
+          <FormMessage />
+        </FormItem>
       )}
-    </div>
+    />
   );
 };
 
-export default FileUploadField
+export default FileUploadField;

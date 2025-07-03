@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+
     const newBusiness = await prisma.businessDetail.create({
       data: {
         name: parsedData.name,

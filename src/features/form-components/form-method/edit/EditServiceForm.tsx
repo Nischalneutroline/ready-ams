@@ -87,7 +87,7 @@ const EditServiceForm = () => {
       description: data.description,
       estimatedDuration: Number(data.estimatedDuration),
       status: data?.availabilities ? "ACTIVE" : "INACTIVE",
-      businessDetailId: data.businessDetailId ?? "cmacgqszn0001msf6gqkxp5as",
+      businessDetailId: data.businessDetailId ?? "cmbfcqfal0025vdgkgj6d2n0a",
 
       serviceAvailability: data.serviceHourDay?.map((day: any) => ({
         weekDay: day.weekDay,
