@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
     const llm = new ChatOpenAI({
       model: "deepseek/deepseek-r1:free", // or "gpt-4o"
       openAIApiKey:
-        "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",
+        process.env.API_KEY,
       configuration: { baseURL: "https://openrouter.ai/api/v1" },
       temperature: 0,
       streaming: false,
