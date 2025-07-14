@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     // 1. Check if user is asking for appointment history
     if (isAppointmentHistoryQuery(userMessage)) {
-      console.log('history')
+      console.log("history");
       const result = await handleAppointmentHistoryQuery(
         user,
         userMessage,
