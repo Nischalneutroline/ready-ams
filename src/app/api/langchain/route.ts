@@ -13,82 +13,17 @@ import { Document } from "@langchain/core/documents";
 import pg from "pg";
 import { RunnableLambda } from "@langchain/core/runnables";
 import { OllamaEmbeddings } from "@langchain/ollama";
-import { appointmentGraph } from "@/features/chatbot/lib/appointmentGraph";
-import { agent } from "@/features/chatbot/lib/agentInstance";
-import { cancelAppointment } from "@/features/chatbot/lib/agentTool";
+import {
+  isAppointmentHistoryQuery,
+  handleAppointmentHistoryQuery,
+} from "@/features/chatbot/lib/appointmentHistory";
+
+import {
+  getConversationState,
+  handleAgentConversationFlow,
+} from "@/features/chatbot/lib/conversationState";
 
 const prisma = new PrismaClient();
-
-function isAppointmentAction(message: string): boolean {
-  // Only matches booking/cancellation/reschedule actions
-  const actionKeywords = [
-    "book",
-    "schedule",
-    "reschedule",
-    "cancel",
-    "make an appointment",
-  ];
-  const lowerMsg = message.toLowerCase();
-
-  // Check for keywords
-  const hasActionKeyword = actionKeywords.some((keyword) =>
-    lowerMsg.includes(keyword)
-  );
-
-  // Check for date in YYYY-MM-DD format
-  const hasDate =
-    /\b\d{4}-\d{2}-\d{2}\b/.test(message) ||
-    /\b\d{2}\/\d{2}\/\d{4}\b/.test(message); // also MM/DD/YYYY
-
-  // Check for time in HH:MM or H:MM format (24-hour or 12-hour)
-  const hasTime = /\b\d{1,2}:\d{2}\b/.test(message);
-
-  // If any of the above is true, treat as part of appointment action flow
-  return hasActionKeyword || hasDate || hasTime;
-}
-
-// Helper function to parse userId from message (simple example)
-function parseUserIdFromMessage(message: string): string | null {
-  // Looks for "for user <userId>"
-  const match = message.match(/for user (\w+)/i);
-  return match ? match[1] : null;
-}
-
-/* function isAppointmentInfo(message: string): boolean {
-  // Matches info queries
-  return (
-    message.toLowerCase().includes("when is my appointment") ||
-    message.toLowerCase().includes("my upcoming appointment") ||
-    message.toLowerCase().includes("what appointments do i have") ||
-    message.toLowerCase().includes("show my appointments")
-  );
-} */
-function extractAppointmentId(message: string): string | undefined {
-  // Adjust this regex to match your expected input format
-  const match = message.match(/appointmentid[:=]\s*([^\s,]+)/i);
-  return match ? match[1].trim() : undefined;
-}
-
-// In-memory context for demo (use session/DB in production)
-const awaitingCancellationId: Record<string, boolean> = {};
-
-function extractFieldsFromMessage(message: string) {
-  const customerNameMatch = message.match(/customername[:=]\s*([^,\n]+)/i);
-  const emailMatch = message.match(/email[:=]\s*([^,\n]+)/i);
-  const phoneMatch = message.match(/phone[:=]\s*([^,\n]+)/i);
-  const serviceIdMatch = message.match(/serviceid[:=]\s*([^,\n]+)/i);
-  const selectedDateMatch = message.match(/selecteddate[:=]\s*([^,\n]+)/i);
-  const selectedTimeMatch = message.match(/selectedtime[:=]\s*([^,\n]+)/i);
-
-  return {
-    customerName: customerNameMatch ? customerNameMatch[1].trim() : undefined,
-    email: emailMatch ? emailMatch[1].trim() : undefined,
-    phone: phoneMatch ? phoneMatch[1].trim() : undefined,
-    serviceId: serviceIdMatch ? serviceIdMatch[1].trim() : undefined,
-    selectedDate: selectedDateMatch ? selectedDateMatch[1].trim() : undefined,
-    selectedTime: selectedTimeMatch ? selectedTimeMatch[1].trim() : undefined,
-  };
-}
 
 export async function POST(req: NextRequest) {
   try {
@@ -102,7 +37,7 @@ export async function POST(req: NextRequest) {
     // Get user and role
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { role: true, email: true },
+      select: { id: true, role: true, email: true },
     });
     if (!user)
       return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -110,91 +45,26 @@ export async function POST(req: NextRequest) {
     const chat_history = messages.slice(0, -1);
     const userMessage = messages[messages.length - 1]?.content || "Hello!";
 
-    // 1. If awaiting appointment ID for cancellation
-    if (awaitingCancellationId[userId]) {
-      console.log("hey");
-      if (/^[a-zA-Z0-9]{20,}$/.test(userMessage.trim())) {
-        const appointmentId = userMessage.trim();
-        const result = await cancelAppointment({ appointmentId });
-        awaitingCancellationId[userId] = false;
-        return NextResponse.json({
-          answer: `Appointment (ID: **${appointmentId}**) has been **successfully canceled**. Let me know if you need further assistance!`,
-          data: result,
-        });
-      }
+    // 1. Check if user is asking for appointment history
+    if (isAppointmentHistoryQuery(userMessage)) {
+      console.log('history')
+      const result = await handleAppointmentHistoryQuery(
+        user,
+        userMessage,
+        userId
+      );
+      return NextResponse.json(result);
     }
 
-    // 1. Detect cancellation intent
-    if (userMessage.toLowerCase().includes("cancel")) {
-      console.log("hiiiii");
-      const appointmentId = extractAppointmentId(userMessage);
+    const state = await getConversationState(userId);
 
-      if (!appointmentId) {
-        awaitingCancellationId[userId] = true;
-        // Just like booking: prompt for missing field, no need for temp store!
-        return NextResponse.json({
-          answer: "Please provide the appointment ID to cancel.",
-          missingFields: ["appointmentId"],
-        });
-      }
-
-      // Call the cancellation tool directly
-      const result = await cancelAppointment({ appointmentId });
-      return NextResponse.json({
-        answer: "Appointment cancelled successfully!",
-        data: result,
-      });
-    }
-
-    // 1. If appointment intent, run the appointmentGraph
-    if (isAppointmentAction(userMessage)) {
-      console.log("hi", user.role);
-      if (user.role === "ADMIN" || user.role === "SUPERADMIN") {
-        // Try to parse userId from the message (e.g., "for user <userId>")
-        const parsedUserId = parseUserIdFromMessage(userMessage);
-        console.log("parsed user id", parsedUserId);
-        const bookingUserId = parsedUserId || userId; // Fallback to admin's own userId
-        console.log("book user id", bookingUserId);
-
-        const extracted = extractFieldsFromMessage(userMessage);
-        const initialState: any = { userId: bookingUserId, ...extracted };
-
-        const graphResult = await appointmentGraph.invoke(initialState);
-        console.log("graph result", graphResult);
-
-        /*       if (graphResult.error) {
-          return NextResponse.json({ answer: `Error: ${graphResult.error}` });
-        } */
-        if (graphResult.missingFields && graphResult.missingFields.length > 0) {
-          return NextResponse.json({
-            answer: `Please provide: ${graphResult.missingFields.join(", ")}`,
-          });
-        }
-        if (graphResult.confirmed) {
-          return NextResponse.json({
-            answer: "Appointment booked successfully!",
-          });
-        }
-      } else {
-        // Normal user can only book for themselves
-        const initialState = { userId };
-        const graphResult = await appointmentGraph.invoke(initialState);
-
-        if (graphResult.error) {
-          return NextResponse.json({ answer: `Error: ${graphResult.error}` });
-        }
-        if (graphResult.missingFields && graphResult.missingFields.length > 0) {
-          return NextResponse.json({
-            answer: `Please provide: ${graphResult.missingFields.join(", ")}`,
-          });
-        }
-        if (graphResult.confirmed) {
-          return NextResponse.json({
-            answer: "Your appointment has been booked successfully!",
-          });
-        }
-      }
-    }
+    const flowResult = await handleAgentConversationFlow({
+      user,
+      userId,
+      userMessage,
+      state,
+    });
+    if (flowResult) return flowResult;
 
     // Setup vector store (using pgvector)
     /*  const embeddings = new OpenAIEmbeddings({
@@ -209,22 +79,7 @@ export async function POST(req: NextRequest) {
     });
 
     const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-    /*  const vectorStore = await PGVectorStore.initialize(embeddings, {
-      pool,
-      tableName: "Document",
-      columns: {
-        idColumnName: "id",
-        vectorColumnName: "embedding",
-        contentColumnName: "content",
-        metadataColumnName: "metadata",
-      },
-    });
 
-    // Base retriever
-    const baseRetriever = vectorStore.asRetriever({
-      k: 4,
-    });
- */
     // 1. Generate the embedding for your query string
     const queryEmbedding = await embeddings.embedQuery(userMessage);
 
@@ -239,7 +94,7 @@ export async function POST(req: NextRequest) {
      SELECT id, content, metadata, embedding <-> $1::vector AS distance
       FROM "Document"
       ORDER BY distance
-     LIMIT 5;
+     LIMIT 20;
      `;
       const result = await client.query(sql, [embeddingStr]);
       docs = result.rows.map((row) => ({
@@ -297,8 +152,7 @@ export async function POST(req: NextRequest) {
     // LLM setup
     const llm = new ChatOpenAI({
       model: "deepseek/deepseek-r1:free",
-      openAIApiKey:
-        "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",
+      openAIApiKey: process.env.DEEPSEEK_API_KEY,
       configuration: { baseURL: "https://openrouter.ai/api/v1" },
       temperature: 0,
       streaming: false,

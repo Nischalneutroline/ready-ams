@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server"
-import { getAnnouncementOrOfferById } from "@/db/announcement-offer"
-import { getAppointmentById } from "@/db/appointment"
-import { getServiceById } from "@/db/service"
-import { prisma } from "@/lib/prisma"
-import { z, ZodError } from "zod"
-import { Service } from "@prisma/client"
-import { serviceSchema } from "@/app/(admin)/service/_schemas/service"
+import { NextRequest, NextResponse } from "next/server";
+import { getAnnouncementOrOfferById } from "@/db/announcement-offer";
+import { getAppointmentById } from "@/db/appointment";
+import { getServiceById } from "@/db/service";
+import { prisma } from "@/lib/prisma";
+import { z, ZodError } from "zod";
+import { Service } from "@prisma/client";
+import { serviceSchema } from "@/app/(admin)/service/_schemas/service";
 import { deleteImageFromStorage } from "@/lib/image-management";
 
 interface ParamsProps {
@@ -62,15 +62,17 @@ export async function PUT(req: NextRequest, { params }: ParamsProps) {
         { status: 404 }
       );
     }
-    
-     // Handle image replacement if needed
-     if (body.imageUrlFileId && body.imageUrlFileId !== existingService.imageUrlFileId) {
+
+    // Handle image replacement if needed
+    if (
+      body.imageUrlFileId &&
+      body.imageUrlFileId !== existingService.imageUrlFileId
+    ) {
       // If there's a new image and an old one exists, delete the old one
       if (existingService.imageUrlFileId) {
-          await deleteImageFromStorage(existingService.imageUrlFileId);
-        } 
+        await deleteImageFromStorage(existingService.imageUrlFileId);
       }
-    
+    }
 
     // Service Availability TimeSlot update logic
     // const deledtedService = await prisma.service.delete({
@@ -82,9 +84,9 @@ export async function PUT(req: NextRequest, { params }: ParamsProps) {
       where: {
         serviceId: id,
       },
-    })
+    });
 
-    console.log("serviceAvailability----------", serviceAvailability)
+    console.log("serviceAvailability----------", serviceAvailability);
 
     if (serviceAvailability) {
       const updatedService = await prisma.service.update({
@@ -170,7 +172,7 @@ export async function DELETE(req: NextRequest, { params }: ParamsProps) {
     }
 
     if (existingService.imageUrlFileId) {
-        await deleteImageFromStorage(existingService.imageUrlFileId);
+      await deleteImageFromStorage(existingService.imageUrlFileId);
     }
 
     const deletedService = await prisma.service.delete({

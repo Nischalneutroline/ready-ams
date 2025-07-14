@@ -5,10 +5,6 @@ import { tools } from "./agentTool";
 import { prisma } from "@/lib/prisma";
 import { WeekDays } from "@prisma/client";
 
-//dont show  past appointment
-//can track appointemnt history of user
-//user name,phone number and other details.
-
 // 1. Define the LangGraph state schema using your appointment schema
 const AppointmentGraphStateSchema = appointmentSchema
   .pick({
@@ -84,15 +80,22 @@ async function bookAppointmentNode(
   state: AppointmentGraphState
 ): Promise<Partial<AppointmentGraphState>> {
   try {
+    if (state.error) {
+      // Do not proceed if there is an error
+      return {};
+    }
     // Find the tool by name (or import the function directly if preferred)
     const bookTool = tools.find((t) => t.name === "bookAppointment");
 
     if (!bookTool) throw new Error("Booking tool not found");
 
     // Normalize the date before calling the tool
-    const normalizedDate = state.selectedDate
-      ? normalizeDate(state.selectedDate)
-      : undefined;
+    const normalizedDate = normalizeDate(state.selectedDate);
+
+    const createdById = state.createdById || state.userId;
+    if (!createdById) {
+      throw new Error("createdById is required for booking.");
+    }
 
     // Call the tool with the current state
     const result = await bookTool.invoke({
@@ -107,8 +110,9 @@ async function bookAppointmentNode(
       userId: "cmch8ahh90000uj8k19koy2y9",
       message: state.message || "hi",
       isForSelf: state.isForSelf ?? true,
-      createdById: state.createdById || state.userId,
+      createdById: createdById,
     });
+    console.log("book tool", result);
     return { confirmed: true, ...result }; // Optionally merge result into state
   } catch (error: any) {
     return { error: error.message || "Booking failed" };
@@ -118,27 +122,33 @@ async function bookAppointmentNode(
 async function checkAvailability(
   state: AppointmentGraphState
 ): Promise<Partial<AppointmentGraphState>> {
-  if (!state.serviceId || !state.selectedDate || !state.selectedTime) {
-    const requiredFields: (keyof AppointmentGraphState)[] = [
-      "serviceId",
-      "selectedDate",
-      "selectedTime",
-    ];
-    const missingFields = requiredFields.filter((f) => !state[f]);
+  // 1. Check required fields
+  const requiredFields: (keyof AppointmentGraphState)[] = [
+    "serviceId",
+    "selectedDate",
+    "selectedTime",
+  ];
+  const missingFields = requiredFields.filter((f) => !state[f]);
+  if (missingFields.length > 0) {
     return { missingFields };
   }
 
-  // Convert selectedDate to weekday string (e.g., MONDAY)
-  const dateObj = new Date(state.selectedDate);
-  const weekDayString = dateObj
+  // 2. Prevent booking in the past
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const selectedDateObj = new Date(state.selectedDate);
+  if (selectedDateObj < today) {
+    return { error: "Cannot book appointments in the past." };
+  }
+
+  // 3. Convert selectedDate to weekday string (e.g., MONDAY)
+  const weekDayString = selectedDateObj
     .toLocaleDateString("en-US", { weekday: "long" })
     .toUpperCase();
-
-  // Convert string to Prisma enum
   const weekDayEnum: WeekDays =
     WeekDays[weekDayString as keyof typeof WeekDays];
 
-  // Query service with availability for the given weekday
+  // 4. Query service with availability for the given weekday
   const service = await prisma.service.findUnique({
     where: { id: state.serviceId },
     include: {
@@ -148,6 +158,7 @@ async function checkAvailability(
       },
     },
   });
+  console.log("service", service);
 
   if (
     !service ||
@@ -158,15 +169,30 @@ async function checkAvailability(
   }
 
   const availability = service.serviceAvailability[0];
-  const slot = availability.timeSlots.find(
-    (t) => t.startTime === state.selectedTime && t.isAvailable
+  console.log("availability", availability);
+
+  // 5. Normalize selectedTime to "HH:mm:ss"
+  let selectedTime = state.selectedTime;
+  if (selectedTime.length === 5) {
+    selectedTime += ":00";
+  }
+  console.log("Normalized selectedTime:", selectedTime);
+
+  // 6. Debug: Log all slot startTimes
+  availability.timeSlots.forEach((t: any) =>
+    console.log("Slot startTime:", t.startTime)
   );
 
+  // 7. Find slot by exact match
+  const slot = availability.timeSlots.find(
+    (t: any) => t.startTime === selectedTime && t.isAvailable
+  );
+  console.log("slot", slot);
   if (!slot) {
     return { error: "Requested time slot is not available." };
   }
 
-  // Check max bookings
+  // 8. Check max bookings
   if (service.maxBookings !== null && service.maxBookings !== undefined) {
     const bookingsCount = await prisma.appointment.count({
       where: {
@@ -175,6 +201,7 @@ async function checkAvailability(
         selectedTime: state.selectedTime,
       },
     });
+    console.log("booking", bookingsCount);
 
     if (bookingsCount >= service.maxBookings) {
       return { error: "Slot is fully booked." };

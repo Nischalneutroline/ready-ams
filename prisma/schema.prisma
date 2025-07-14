@@ -247,6 +247,7 @@ model AnnouncementOrOffer {
 
   createdAt DateTime @default(now()) // Creation timestamp
   updatedAt   DateTime @updatedAt
+  isSent      Boolean  @default(false)
 }
 
 enum Showon {
@@ -600,4 +601,12 @@ model Document {
   serviceId    String?
   service      Service?     @relation(fields: [serviceId], references: [id])
    metadata     Json? 
+}
+
+model ConversationState {
+  userId         String   @id
+  flow           String?      // e.g. 'booking', 'cancellation', etc.
+  collectedFields Json?       // Stores partial fields (e.g. {"customerName": "...", "email": "..."})
+  missingFields  String[]     // e.g. ["selectedDate", "selectedTime"]
+  updatedAt      DateTime @updatedAt
 }

@@ -32,7 +32,7 @@ const rescheduleAppointmentSchema = appointmentSchema
     appointmentId: z.string(), // Required for identifying which appointment to update
   });
 
-const BASE_URL = "http://localhost:3000";
+const BASE_URL = process.env.BASE_URL;
 
 function normalizeDate(dateStr: string): string {
   const date = new Date(dateStr);
@@ -150,14 +150,14 @@ export const tools = [
     description: "Book an appointment for a user.",
     schema: bookAppointmentSchema,
   }),
-  tool(rescheduleAppointment, {
+/*   tool(rescheduleAppointment, {
     name: "rescheduleAppointment",
     description: "Reschedule (update) an existing appointment by ID.",
     schema: rescheduleAppointmentSchema,
-  }),
-  tool(cancelAppointment, {
+  }), */
+/*   tool(cancelAppointment, {
     name: "cancelAppointment",
     description: "Cancel an appointment by ID.",
     schema: cancelAppointmentSchema,
-  }),
+  }), */
 ];

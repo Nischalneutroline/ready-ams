@@ -20,7 +20,11 @@ export const sendAnnouncement = inngestClient.createFunction(
       return { success: false, message: "Announcement not found" };
     }
 
-    //later we will also compare sent status and wont proceed if status is already sent
+    // Check if announcement is already sent
+    if (announcement.isSent) {
+      console.log("Announcement already sent, skipping.");
+      return { success: false, message: "Announcement already sent" };
+    }
 
     // Skip if version is outdated (announcement was updated after the event was scheduled)
     if (new Date(announcement.updatedAt).getTime() !== lastUpdate) {
@@ -99,6 +103,12 @@ export const sendAnnouncement = inngestClient.createFunction(
             break;
         }
       }
+    });
+
+    //update the sent status
+    await prisma.announcementOrOffer.update({
+      where: { id: announcement.id },
+      data: { isSent: true },
     });
 
     return { success: true };

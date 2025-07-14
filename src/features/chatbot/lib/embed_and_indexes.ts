@@ -72,27 +72,7 @@ export async function embedAndIndexAllContent({ forceReindex = false } = {}) {
   }
 
   // 2. Index Services
-  /* const services = await prisma.service.findMany();
-  for (const service of services) {
-    const content = `Service: ${service.title}. Description: ${service.description || "N/A"}. Price: $${service.price || "N/A"}. Duration: ${service.estimatedDuration || "N/A"} minutes.`;
-    const chunks = await splitter.splitText(content);
-    const accessLevel = ["USER", "ADMIN", "SUPERADMIN"];
-    for (const chunk of chunks) {
-      const id = uuidv4();
-      const embedding = await embeddings.embedQuery(chunk);
-      await prisma.$executeRaw`
-  INSERT INTO "Document" ("id","content", "accessLevel", "serviceId", "source", "embedding", "metadata")
-  VALUES (${id}, ${chunk}, ${accessLevel}::"Role"[], ${service.id}, 'service', ${embedding}::vector , ${JSON.stringify(
-    {
-      serviceId: service.id,
-      source: "service",
-      accessLevel,
-    }
-  )}::jsonb 
-  )
-`;
-    }
-  } */
+
   const serviceAvailabilities = await prisma.serviceAvailability.findMany({
     include: { service: true, timeSlots: true },
   });
@@ -151,43 +131,4 @@ export async function embedAndIndexAllContent({ forceReindex = false } = {}) {
   }
  */
   console.log("All dynamic content indexed!");
-}
-
-export async function fetchFullAppointmentHistory(userId: string) {
-  const appointments = await prisma.appointment.findMany({
-    where: { userId },
-    orderBy: { selectedDate: "desc" },
-  });
-  return appointments;
-}
-
-// we can use this if we want to directly add from admin or superadmin site without re-indexing
-export async function addDynamicContent(
-  title: string,
-  content: string,
-  accessLevel: Role[] = [Role.USER, Role.ADMIN, Role.SUPERADMIN],
-  metadata: Record<string, any> = {}
-) {
-  const embeddings = new OpenAIEmbeddings({
-    apiKey: process.env.OPENAI_API_KEY,
-    model: "text-embedding-3-small",
-  });
-  const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize: 1000,
-    chunkOverlap: 200,
-  });
-  const fullText = `${title}\n\n${content}`;
-  const chunks = await splitter.splitText(fullText);
-
-  for (const chunk of chunks) {
-    const embedding = await embeddings.embedQuery(chunk);
-    await prisma.document.create({
-      data: {
-        content: chunk,
-        /* embedding, */
-        accessLevel,
-        ...metadata,
-      },
-    });
-  }
 }

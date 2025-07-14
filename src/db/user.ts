@@ -18,4 +18,14 @@ async function getUserById(id: string) {
   })
 }
 
-export { getUserByEmail, getUserById }
+//get userid by email
+ async function getUserIdByEmail(email: string): Promise<string | undefined> {
+  if (!email) return undefined;
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+  return user?.id;
+}
+
+export { getUserByEmail, getUserById, getUserIdByEmail }

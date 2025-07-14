@@ -1,26 +1,26 @@
-import { NextRequest, NextResponse } from "next/server"
-import { ZodError } from "zod"
-import { prisma } from "@/lib/prisma"
-import { getServiceById } from "@/db/service"
-import { Service } from "@/app/(admin)/service/_types/service"
-import { serviceSchema } from "@/app/(admin)/service/_schemas/service"
-import { Prisma } from "@prisma/client"
+import { NextRequest, NextResponse } from "next/server";
+import { ZodError } from "zod";
+import { prisma } from "@/lib/prisma";
+import { getServiceById } from "@/db/service";
+import { Service } from "@/app/(admin)/service/_types/service";
+import { serviceSchema } from "@/app/(admin)/service/_schemas/service";
+import { Prisma } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = (await req.json()) as Service
+    const body = (await req.json()) as Service;
 
-    const parsedData = serviceSchema.parse(body)
+    const parsedData = serviceSchema.parse(body);
 
     const newService = await prisma.service.create({
       data: {
         title: parsedData.title,
-          type: parsedData.type || "PHYSICAL",
+        type: parsedData.type || "PHYSICAL",
         description: parsedData.description,
         estimatedDuration: parsedData.estimatedDuration,
         status: parsedData.status || "ACTIVE", // Fallback to default if undefined
-         imageUrl: parsedData.imageUrl, 
-        imageUrlFileId: parsedData.imageUrlFileId, 
+        imageUrl: parsedData.imageUrl,
+        imageUrlFileId: parsedData.imageUrlFileId,
         serviceAvailability: {
           create: parsedData.serviceAvailability?.map((availability) => ({
             weekDay: availability.weekDay,
@@ -34,13 +34,13 @@ export async function POST(req: NextRequest) {
         },
         businessDetailId: parsedData.businessDetailId,
       },
-    })
+    });
 
     if (!newService) {
       return NextResponse.json(
         { message: "Failed to create service", success: false },
         { status: 500 }
-      )
+      );
     }
 
     return NextResponse.json(
@@ -50,15 +50,15 @@ export async function POST(req: NextRequest) {
         message: "New Service created successfully!",
       },
       { status: 201 }
-    )
+    );
   } catch (error) {
     if (error instanceof Prisma.PrismaClientValidationError) {
-      console.error("Validation error:", error)
+      console.error("Validation error:", error);
       // Handle the validation error specifically
       return {
         error: "Validation failed",
         details: error, // or use error.stack for full stack trace
-      }
+      };
     }
     if (error instanceof ZodError) {
       return NextResponse.json(
@@ -68,15 +68,14 @@ export async function POST(req: NextRequest) {
           success: false,
         },
         { status: 400 }
-      )
+      );
     }
     return NextResponse.json(
       { message: "Failed to create service!", success: false, error: error },
       { status: 500 }
-    )
+    );
   }
 }
-
 
 //fetch all service
 export async function GET() {

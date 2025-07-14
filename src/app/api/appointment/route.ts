@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       email: parsedData.email,
       phone: parsedData.phone,
       status: parsedData.status,
-      userId: "cmch8ahh90000uj8k19koy2y9",
+      userId: "cmcynaycy0000vdu0czbyhnwb",
       bookedById: parsedData.bookedById,
       serviceId: parsedData.serviceId,
       selectedDate: parsedData.selectedDate,
@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
       isForSelf: parsedData.isForSelf,
       createdById: parsedData.createdById,
       resourceId: parsedData.resourceId,
+      cancelledAt: parsedData.cancelledAt,
     });
 
     // Return a success response
