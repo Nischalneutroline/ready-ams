@@ -1,6 +1,7 @@
 import { tool } from "@langchain/core/tools";
 import { appointmentSchema } from "@/app/(admin)/appointment/_schema/appoinment";
 import z from "zod";
+import { appointmentGraph } from "./appointmentGraph";
 
 const bookAppointmentSchema = appointmentSchema.pick({
   customerName: true,
@@ -55,6 +56,11 @@ function cleanNullStrings(obj: any): any {
 }
 
 async function bookAppointment(data: any) {
+  const result = await appointmentGraph.invoke({
+    ...data,
+    // optionally: inject known user context here
+  });
+
   const normalizedDate = data.selectedDate
     ? normalizeDate(data.selectedDate)
     : undefined;
@@ -150,12 +156,12 @@ export const tools = [
     description: "Book an appointment for a user.",
     schema: bookAppointmentSchema,
   }),
-/*   tool(rescheduleAppointment, {
+  /*   tool(rescheduleAppointment, {
     name: "rescheduleAppointment",
     description: "Reschedule (update) an existing appointment by ID.",
     schema: rescheduleAppointmentSchema,
   }), */
-/*   tool(cancelAppointment, {
+  /*   tool(cancelAppointment, {
     name: "cancelAppointment",
     description: "Cancel an appointment by ID.",
     schema: cancelAppointmentSchema,

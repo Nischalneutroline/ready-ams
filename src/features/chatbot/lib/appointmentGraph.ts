@@ -107,7 +107,7 @@ async function bookAppointmentNode(
       serviceId: state.serviceId,
       selectedDate: normalizedDate,
       selectedTime: state.selectedTime,
-      userId: "cmch8ahh90000uj8k19koy2y9",
+      userId: state.userId,
       message: state.message || "hi",
       isForSelf: state.isForSelf ?? true,
       createdById: createdById,

@@ -28,12 +28,18 @@ export async function embedAndIndexAllContent({ forceReindex = false } = {}) {
   });
  */
 
+  const embeddings = new OpenAIEmbeddings({
+    openAIApiKey: process.env.OPENAI_API_KEY,
+    modelName: "text-embedding-3-small",
+    dimensions: 1024,
+  });
+
   // Use Ollama for embeddings in dev
-  const embeddings = new OllamaEmbeddings({
+  /*  const embeddings = new OllamaEmbeddings({
     model: "mxbai-embed-large", // or another supported embedding model
     baseUrl: "http://localhost:11434", // default Ollama endpoint
   });
-
+ */
   // Index database content (appointments, services )
   // Appointments
   // 1. Index Appointments
@@ -51,7 +57,7 @@ export async function embedAndIndexAllContent({ forceReindex = false } = {}) {
     console.log("user is", appt.service.title);
     const content = `Appointment for ${appt.service.title} on ${`${dateStr} ${appt.selectedTime}`} by user email: ${appt.email || appt.user?.email} name: ${appt.customerName} phone: ${appt.phone}`;
     const chunks = await splitter.splitText(content);
-    const accessLevel = ["USER", "ADMIN", "SUPERADMIN"];
+    const accessLevel = ["USER", "ADMIN", "SUPER_ADMIN"];
     for (const chunk of chunks) {
       const id = uuidv4();
       const embedding = await embeddings.embedQuery(chunk);
@@ -82,7 +88,7 @@ export async function embedAndIndexAllContent({ forceReindex = false } = {}) {
       .join(", ");
     const content = `Service "${avail.service.title}" is available on ${avail.weekDay} ${slots}.`;
     const chunks = await splitter.splitText(content);
-    const accessLevel = ["USER", "ADMIN", "SUPERADMIN"];
+    const accessLevel = ["USER", "ADMIN", "SUPER_ADMIN"];
     for (const chunk of chunks) {
       const id = uuidv4();
       const embedding = await embeddings.embedQuery(chunk);

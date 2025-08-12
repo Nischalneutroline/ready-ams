@@ -72,12 +72,18 @@ export async function POST(req: NextRequest) {
       model: "text-embedding-3-small",
     }); */
 
+    const embeddings = new OpenAIEmbeddings({
+      openAIApiKey: process.env.OPENAI_API_KEY,
+      modelName: "text-embedding-3-small",
+      dimensions: 1024,
+    });
+
     // Use Ollama for embeddings in dev
-    const embeddings = new OllamaEmbeddings({
+    /* const embeddings = new OllamaEmbeddings({
       model: "mxbai-embed-large", // or another supported embedding model
       baseUrl: "http://localhost:11434", // default Ollama endpoint
     });
-
+ */
     const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 
     // 1. Generate the embedding for your query string
@@ -150,12 +156,26 @@ export async function POST(req: NextRequest) {
     });
 
     // LLM setup
-    const llm = new ChatOpenAI({
+    /* const llm = new ChatOpenAI({
       model: "deepseek/deepseek-r1:free",
       openAIApiKey: process.env.DEEPSEEK_API_KEY,
       configuration: { baseURL: "https://openrouter.ai/api/v1" },
       temperature: 0,
       streaming: false,
+    }); */
+
+    const llm = new ChatOpenAI({
+      model: "gpt-4o-mini",
+      openAIApiKey: process.env.OPENAI_API_KEY,
+      temperature: 0,
+      streaming: false,
+      callbacks: [
+        {
+          handleLLMEnd(output) {
+            console.log("LLM Token Usage:", output);
+          },
+        },
+      ],
     });
 
     // History-aware retriever
